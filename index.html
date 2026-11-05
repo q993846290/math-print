@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>算数プリント作成</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 方眼ノートの紙面に、左が設定・右がプリントのプレビュー。先生の赤ペンを差し色に */
+:root {
+  --paper: #fbfcfd; --grid: #e7edf3; --card: #ffffff; --ink: #1d2733; --sub: #5a6877; --line: #d6dee6;
+  --red: #c8321f; --red-weak: #fbe9e6; --blue: #2f63c4; --on-red: #ffffff; --shadow: 0 1px 2px rgb(20 40 60 / .06), 0 8px 24px rgb(20 40 60 / .06);
+  --display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #12171d; --grid: #1a2129; --card: #19212a; --ink: #e6ebf0; --sub: #9aa8b6; --line: #2c3743;
+  --red: #ef6b55; --red-weak: #3a1f1b; --blue: #7ea6f2; --on-red: #1a0d0a; --shadow: none; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #12171d; --grid: #1a2129; --card: #19212a; --ink: #e6ebf0; --sub: #9aa8b6; --line: #2c3743;
+  --red: #ef6b55; --red-weak: #3a1f1b; --blue: #7ea6f2; --on-red: #1a0d0a; --shadow: none; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background-color: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.65;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 6px; }
+h1 { font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.badge { font-size: .78rem; font-weight: 700; color: var(--red); border: 1.5px solid var(--red); border-radius: 999px; padding: 1px 10px; transform: rotate(-3deg); display: inline-block; }
+.lead { color: var(--sub); margin: 0 0 22px; max-width: 62ch; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.stack { display: grid; gap: 16px; min-width: 0; }
+h2 { font-family: var(--display); font-size: 1.08rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+h2 .n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--red); color: var(--on-red); font-size: .82rem; font-family: var(--body); }
+.grades { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0; padding: 8px 12px 8px; min-width: 0; }
+legend { font-weight: 700; padding: 0 4px; font-size: .92rem; }
+legend button { margin-left: 6px; font: inherit; font-size: .72rem; font-weight: 500; border: 1px solid var(--line); background: var(--card); color: var(--sub); border-radius: 999px; padding: 0 8px; cursor: pointer; }
+fieldset label { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .9rem; }
+fieldset input { margin-top: 5px; accent-color: var(--red); flex: none; }
+.tag { font-size: .7rem; color: var(--red); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-right: 4px; white-space: nowrap; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 14px; }
+.field label { display: block; font-weight: 700; font-size: .85rem; margin-bottom: 4px; }
+.field input, .field select { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+.field input:focus-visible, .field select:focus-visible, button:focus-visible, fieldset input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.help { color: var(--sub); font-size: .76rem; margin-top: 3px; }
+.check { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: .92rem; }
+.check input { accent-color: var(--red); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.go { font: inherit; font-weight: 700; background: var(--red); color: var(--on-red); border: 0; border-radius: 10px; padding: 11px 22px; cursor: pointer; }
+button.sec { font: inherit; font-weight: 700; background: transparent; color: var(--red); border: 1.5px solid var(--red); border-radius: 10px; padding: 9.5px 18px; cursor: pointer; }
+button:disabled { opacity: .45; cursor: default; }
+.status { color: var(--sub); font-size: .85rem; }
+.status.err { color: var(--red); }
+.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.pv-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.pv-head h2 { margin: 0; }
+.pages { display: grid; gap: 12px; max-height: calc(100vh - 140px); overflow-y: auto; padding: 4px; border-radius: 10px; background: var(--grid); }
+.pages canvas { width: 100%; height: auto; display: block; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgb(0 0 0 / .18); }
+.empty { padding: 48px 16px; text-align: center; color: var(--sub); font-size: .9rem; }
+.note { margin-top: 10px; font-size: .78rem; color: var(--sub); }
+@media (max-width: 900px) { .preview { position: static; } .pages { max-height: none; } }
+@media (prefers-reduced-motion: no-preference) { .pages canvas { animation: fade .25s ease-out; } @keyframes fade { from { opacity: .4 } } }
+
+/* 学年タブ・単元・カレンダー */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tab { font: inherit; font-size: .86rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.tab .cnt { font-size: .7rem; background: var(--red); color: var(--on-red); border-radius: 999px; padding: 0 6px; }
+.cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.chosen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; min-height: 28px; align-items: center; }
+.chip { font: inherit; font-size: .78rem; border: 1px solid var(--line); background: var(--red-weak); color: var(--ink); border-radius: 999px; padding: 2px 6px 2px 10px; display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+.chip span.x { color: var(--red); font-weight: 700; padding: 0 3px; }
+.muted { color: var(--sub); font-size: .82rem; }
+.linkbtn { font: inherit; font-size: .78rem; background: none; border: 0; color: var(--red); cursor: pointer; text-decoration: underline; padding: 0; }
+.cal { max-width: 340px; }
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 700; }
+.cal-head button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; width: 32px; height: 28px; cursor: pointer; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-variant-numeric: tabular-nums; }
+.cal-grid .dow { font-size: .72rem; color: var(--sub); padding: 2px 0; }
+.cal-grid .dow.sun, .cal-grid button.sun { color: var(--red); }
+.cal-grid .dow.sat, .cal-grid button.sat { color: var(--blue); }
+.cal-grid button { font: inherit; font-size: .85rem; height: 34px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--ink); cursor: pointer; }
+.cal-grid button:hover { border-color: var(--line); }
+.cal-grid button.today { border-color: var(--sub); }
+.cal-grid button.on { background: var(--red); color: var(--on-red); font-weight: 700; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.quick button { font: inherit; font-size: .78rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.datewrap { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 640px) { .datewrap { grid-template-columns: minmax(0, 1fr); } }
+.datelist { font-size: .82rem; color: var(--sub); line-height: 1.8; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header><h1>算数プリント作成</h1></header>
+  <p class="lead">小学1年〜中学3年の単元から出題範囲を選び、日付を選んで「プリントを作る」を押すと、問題用紙と解答用紙の PDF ができます。何日分でも1つのファイルにまとまります。問題はこのページの中で作るので、入力した内容はどこにも送信されません。</p>
+
+  <div class="layout">
+    <form id="f" class="stack" novalidate>
+      <section class="card">
+        <h2><span class="n">1</span>出題範囲（複数選べます）</h2>
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div class="cats" id="cats"></div>
+        <div class="chosen" id="chosen"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="n">2</span>日付（複数選べます）</h2>
+        <div class="datewrap">
+          <div class="cal">
+            <div class="cal-head"><button type="button" id="prev" aria-label="前の月">‹</button><span id="month"></span><button type="button" id="next" aria-label="次の月">›</button></div>
+            <div class="cal-grid" id="cal"></div>
+            <div class="quick">
+              <button type="button" data-q="today">今日だけ</button>
+              <button type="button" data-q="week">今週の月〜金</button>
+              <button type="button" data-q="nextweek">来週の月〜金</button>
+              <button type="button" data-q="clear">すべて外す</button>
+            </div>
+          </div>
+          <div>
+            <div class="muted" id="dcount"></div>
+            <div class="datelist" id="dlist"></div>
+            <p class="help">日付をクリックで選択・解除。1日ごとに別の問題でプリントを作り、日付の順に1つの PDF にまとめます（最大31日）。日付を選ばないと、日付なしのプリントを1枚作ります。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="n">3</span>プリントの設定</h2>
+        <div class="row">
+          <div class="field"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
+          <div class="field"><label for="count">1日の問題数（1〜100）</label><input id="count" type="number" min="1" max="100" value="12"></div>
+          <div class="field"><label for="spacing">計算スペース</label>
+            <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
+          <div class="field"><label for="output">出力</label>
+            <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
+          <div class="field"><label for="order">解答の位置</label>
+            <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
+          <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
+        </div>
+        <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する</label>
+      </section>
+
+      <div class="actions">
+        <button class="go" id="make" type="submit" disabled>プリントを作る</button>
+        <button class="sec" id="save" type="button" disabled hidden>PDF をダウンロード</button>
+        <span class="status" id="status" role="status">準備しています…（初回は 20MB ほど読み込みます）</span>
+      </div>
+    </form>
+
+    <section class="card preview" aria-label="プレビュー">
+      <div class="pv-head"><h2>プレビュー</h2><span class="status" id="pinfo"></span></div>
+      <div class="pages" id="pages"><div class="empty">準備ができると、ここに見本のプリントが表示されます。</div></div>
+      <p class="note">解答用紙は赤字です。左下の No. を「プリント番号」に入れると、同じ問題を作り直せます（複数日のときは1日目の番号）。</p>
+    </section>
+  </div>
+</div>
+
+<script src="pyodide/pyodide.js"></script>
+<script src="pdf.min.js"></script>
+<script>
+const UNITS = [{"grade": "小学1年", "cats": [{"cat": "数と計算", "units": [["e1_add_nocarry", "たし算（くり上がりなし）"], ["e1_add_carry", "たし算（くり上がりあり）"], ["e1_sub_noborrow", "ひき算（くり下がりなし）"], ["e1_sub_borrow", "ひき算（くり下がりあり）"], ["c1_numbers", "100までの数・数の順序と大小"], ["c1_three", "3つの数の計算"], ["c1_compose", "20までの数の構成"]]}, {"cat": "量と測定", "units": [["c1_clock", "時計の読み方（何時・何時半）"]]}]}, {"grade": "小学2年", "cats": [{"cat": "数と計算", "units": [["e2_add2", "2けたのたし算"], ["e2_sub2", "2けたのひき算"], ["e2_kuku", "かけ算九九"], ["c2_place", "1000・10000までの数"], ["c2_vertical", "たし算・ひき算の筆算"], ["c2_mul_property", "かけ算の性質"]]}, {"cat": "量と測定", "units": [["c2_length", "長さ・かさの単位（cm・mm・m・L・dL・mL）"], ["c2_time", "時刻と時間"]]}, {"cat": "その他", "units": [["c2_pattern", "数の並び方・規則性"]]}]}, {"grade": "小学3年", "cats": [{"cat": "数と計算", "units": [["e3_add3", "3けたのたし算"], ["e3_sub3", "3けたのひき算"], ["e3_mul_x1", "かけ算（×1けた）"], ["e3_mul_2x2", "かけ算（2けた×2けた）"], ["e3_div_exact", "わり算（あまりなし）"], ["e3_div_rem", "わり算（あまりあり）"], ["c3_big", "大きな数（一万・十万・百万）"], ["c3_add4", "4けたのたし算・ひき算"], ["c3_vertical_mul", "かけ算の筆算（2・3けた×1けた）"], ["c3_frac_compare", "分数の大小"], ["c3_dec1", "小数のたし算・ひき算（小数第1位）"], ["c3_box", "□を使った式"]]}, {"cat": "図形", "units": [["c3_circle", "円の半径と直径"]]}, {"cat": "量と測定", "units": [["c3_units", "長さ・重さ・時間の単位（km・kg・t・秒）"]]}]}, {"grade": "小学4年", "cats": [{"cat": "数と計算", "units": [["e4_div_3by1", "わり算（3けた÷1けた）"], ["e4_div_by2", "わり算（÷2けた）"], ["e4_order", "計算のじゅんじょ（四則混合）"], ["e4_dec_addsub", "小数のたし算・ひき算"], ["c4_big", "大きな数（億・兆）"], ["c4_dec_muldiv", "小数のかけ算・わり算（×整数・÷整数）"], ["c4_frac_same", "同分母分数のたし算・ひき算"], ["c4_box2", "□や△を使った式"]]}, {"cat": "図形", "units": [["g4_rect", "長方形・正方形の面積とまわり"], ["c4_angle", "角の大きさ"]]}, {"cat": "量と測定", "units": [["c4_area_unit", "面積の単位（cm²・m²・a・ha・km²）"], ["c4_round", "概数・四捨五入"]]}]}, {"grade": "小学5年", "cats": [{"cat": "数と計算", "units": [["e5_dec_mul", "小数のかけ算"], ["e5_dec_div", "小数のわり算"], ["e5_frac_addsub", "分数のたし算・ひき算（通分）"], ["c5_gcd_lcm", "公倍数・公約数"], ["c5_divisors", "倍数・約数・素数"], ["c5_frac_dec", "分数と小数・整数の関係"], ["c5_percent", "割合・百分率・歩合"]]}, {"cat": "図形", "units": [["g5_area", "三角形・平行四辺形・台形の面積"], ["g5_volume", "直方体・立方体の体積"], ["g5_triangle_angle", "三角形の角"]]}, {"cat": "量と測定", "units": [["c5_average", "平均"], ["c5_per_unit", "単位量あたりの大きさ"], ["c5_speed", "速さ・道のり・時間"]]}]}, {"grade": "小学6年", "cats": [{"cat": "数と計算", "units": [["e6_frac_muldiv", "分数のかけ算・わり算"], ["c6_mixed", "分数・小数・整数の混合計算"], ["c6_letter", "文字を使った式"], ["c6_ratio", "比と比の値"], ["c6_proportion", "比例・反比例"]]}, {"cat": "図形", "units": [["g6_circle", "円の面積・円周の長さ"], ["c6_scale", "拡大図と縮図（縮尺）"], ["c6_prism_vol", "角柱・円柱の体積"]]}, {"cat": "データの活用", "units": [["c6_data", "代表値（平均値・中央値・最頻値）"], ["c6_cases", "起こり得る場合の数"]]}]}, {"grade": "中学1年", "cats": [{"cat": "数と式", "units": [["j1_int_addsub", "正負の数の加法・減法"], ["j1_int_muldiv", "正負の数の乗法・除法・累乗"], ["j1_letter", "文字式の計算"], ["j1_linear_eq", "一次方程式"], ["d1_abs", "数の大小・絶対値"], ["d1_value", "文字式の値"], ["d1_eq_more", "かっこ・分数・小数を含む方程式"], ["d1_word_eq", "方程式の文章問題"]]}, {"cat": "図形", "units": [["h1_sector", "おうぎ形の弧の長さ・面積"], ["h1_solid", "円柱・円錐の体積"], ["d1_surface", "表面積（円柱・直方体）"]]}, {"cat": "関数", "units": [["d1_func", "比例・反比例の式"]]}, {"cat": "データの活用", "units": [["d1_relfreq", "相対度数"]]}]}, {"grade": "中学2年", "cats": [{"cat": "数と式", "units": [["j2_poly", "多項式の加法・減法"], ["j2_monomial", "単項式の乗法・除法"], ["j2_simul", "連立方程式"], ["d2_transform", "等式の変形"], ["d2_word_simul", "連立方程式の文章問題"]]}, {"cat": "図形", "units": [["h2_parallel", "平行線と角"], ["h2_polygon", "多角形の内角・外角"]]}, {"cat": "関数", "units": [["d2_linear", "一次関数の式・変化の割合"]]}, {"cat": "データの活用", "units": [["d2_prob", "確率"], ["d2_quartile", "四分位数・四分位範囲"]]}]}, {"grade": "中学3年", "cats": [{"cat": "数と式", "units": [["j3_expand", "式の展開"], ["j3_factor", "因数分解"], ["j3_sqrt", "平方根の計算"], ["j3_quad", "二次方程式（因数分解で解く）"], ["d3_prime", "素因数分解"], ["d3_rationalize", "分母の有理化"], ["d3_quad_more", "二次方程式（平方根・解の公式）"]]}, {"cat": "図形", "units": [["h3_pythagoras", "三平方の定理"], ["d3_similar", "相似比と面積比・体積比"], ["d3_inscribed", "円周角の定理"]]}, {"cat": "関数", "units": [["d3_ax2", "関数 y=ax²"]]}, {"cat": "データの活用", "units": [["d3_sample", "標本調査"]]}]}];
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// ---------- 出題範囲 ----------
+const unitName = {};
+for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${g.grade.replace("小学", "小").replace("中学", "中")} ${n}`;
+const selected = new Set(store.get("units", ["e5_frac_addsub", "g5_area", "c5_percent"]).filter((k) => unitName[k]));
+let grade = store.get("grade", "小学5年");
+if (!UNITS.some((g) => g.grade === grade)) grade = UNITS[0].grade;
+
+function renderTabs() {
+  const tabs = $("tabs");
+  tabs.replaceChildren();
+  for (const g of UNITS) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", g.grade === grade ? "true" : "false");
+    b.textContent = g.grade;
+    const n = g.cats.flatMap((c) => c.units).filter(([k]) => selected.has(k)).length;
+    if (n) { const s = document.createElement("span"); s.className = "cnt"; s.textContent = n; b.append(s); }
+    b.addEventListener("click", () => { grade = g.grade; store.set("grade", grade); renderUnits(); });
+    tabs.append(b);
+  }
+}
+
+function renderUnits() {
+  renderTabs();
+  const box = $("cats");
+  box.replaceChildren();
+  const g = UNITS.find((x) => x.grade === grade);
+  for (const c of g.cats) {
+    const fs = document.createElement("fieldset");
+    const lg = document.createElement("legend");
+    lg.textContent = c.cat;
+    const all = document.createElement("button");
+    all.type = "button"; all.textContent = "すべて";
+    all.addEventListener("click", () => {
+      const on = c.units.every(([k]) => selected.has(k));
+      c.units.forEach(([k]) => (on ? selected.delete(k) : selected.add(k)));
+      saveUnits(); renderUnits();
+    });
+    lg.append(all); fs.append(lg);
+    for (const [key, name] of c.units) {
+      const lab = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.id = "u_" + key; cb.checked = selected.has(key);
+      cb.addEventListener("change", () => { cb.checked ? selected.add(key) : selected.delete(key); saveUnits(); renderTabs(); renderChosen(); });
+      const t = document.createElement("span"); t.textContent = name;
+      lab.append(cb, t); fs.append(lab);
+    }
+    box.append(fs);
+  }
+  renderChosen();
+}
+
+function renderChosen() {
+  const box = $("chosen");
+  box.replaceChildren();
+  if (!selected.size) { const m = document.createElement("span"); m.className = "muted"; m.textContent = "まだ選ばれていません。"; box.append(m); return; }
+  const m = document.createElement("span"); m.className = "muted"; m.textContent = `選択中 ${selected.size} 単元：`; box.append(m);
+  for (const k of selected) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.title = "外す";
+    b.append(unitName[k]);
+    const x = document.createElement("span"); x.className = "x"; x.textContent = "×"; b.append(x);
+    b.addEventListener("click", () => { selected.delete(k); saveUnits(); renderUnits(); });
+    box.append(b);
+  }
+  const clr = document.createElement("button"); clr.type = "button"; clr.className = "linkbtn"; clr.textContent = "すべて外す";
+  clr.addEventListener("click", () => { selected.clear(); saveUnits(); renderUnits(); });
+  box.append(clr);
+}
+function saveUnits() { store.set("units", [...selected]); }
+
+// ---------- 日付 ----------
+const pad = (n) => String(n).padStart(2, "0");
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = new Date(); today.setHours(0, 0, 0, 0);
+const dates = new Set([iso(today)]);
+let view = new Date(today.getFullYear(), today.getMonth(), 1);
+const DOW = "日月火水木金土";
+
+function renderCal() {
+  $("month").textContent = `${view.getFullYear()}年${view.getMonth() + 1}月`;
+  const grid = $("cal");
+  grid.replaceChildren();
+  DOW.split("").forEach((d, i) => { const e = document.createElement("div"); e.className = "dow" + (i === 0 ? " sun" : i === 6 ? " sat" : ""); e.textContent = d; grid.append(e); });
+  for (let i = 0; i < view.getDay(); i++) grid.append(document.createElement("div"));
+  const days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+  for (let d = 1; d <= days; d++) {
+    const date = new Date(view.getFullYear(), view.getMonth(), d);
+    const k = iso(date);
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = d;
+    b.className = [date.getDay() === 0 ? "sun" : date.getDay() === 6 ? "sat" : "", dates.has(k) ? "on" : "", k === iso(today) ? "today" : ""].join(" ");
+    b.setAttribute("aria-pressed", dates.has(k) ? "true" : "false");
+    b.setAttribute("aria-label", `${view.getMonth() + 1}月${d}日`);
+    b.addEventListener("click", () => { if (dates.has(k)) dates.delete(k); else if (dates.size < 31) dates.add(k); renderCal(); });
+    grid.append(b);
+  }
+  const list = [...dates].sort();
+  $("dcount").textContent = list.length ? `${list.length} 日分を作ります` : "日付なしで1枚作ります";
+  $("dlist").textContent = list.map((k) => { const d = new Date(k + "T00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`; }).join("　");
+}
+$("prev").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
+$("next").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });
+document.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", () => {
+  const q = b.dataset.q;
+  dates.clear();
+  if (q === "today") dates.add(iso(today));
+  if (q === "week" || q === "nextweek") {
+    const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay() + 6) % 7) + (q === "nextweek" ? 7 : 0));
+    for (let i = 0; i < 5; i++) { const d = new Date(mon); d.setDate(mon.getDate() + i); dates.add(iso(d)); }
+    view = new Date(mon.getFullYear(), mon.getMonth(), 1);
+  }
+  renderCal();
+}));
+
+renderUnits();
+renderCal();
+
+// ---------- PDF ----------
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", location.href).href;
+let py = null, lastPdf = null, lastName = "", downloads = null;
+const inClaude = !!(window.claude && window.claude.use);
+
+function setStatus(text, err = false) { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); }
+
+async function boot() {
+  try {
+    const b64 = async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(url + " " + res.status);
+      const bin = atob((await res.text()).trim());
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    };
+    const [stdlib, buf] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle.b64.txt")]);
+    const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
+    py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
+    py.unpackArchive(buf, "zip", { extractDir: "/app" });
+    py.runPython(`
+import sys, datetime as dt
+sys.path.insert(0, "/app")
+from worksheets.sheets import make_days
+from worksheets.pdf import build_pdf
+
+def make(units, count, seed, shuffle, title, dates, spacing, output, answers_last):
+    ds = [dt.date.fromisoformat(d) for d in dates]
+    days = make_days(list(units), int(count), int(seed), ds, shuffle=bool(shuffle))
+    return build_pdf(days, title=title, spacing=spacing, output=output, answers_last=bool(answers_last))
+`);
+    $("make").disabled = false;
+    setStatus("準備ができました");
+    make();
+  } catch (e) {
+    console.error(e);
+    setStatus("このブラウザでは起動できませんでした。ページを再読み込みしてみてください。", true);
+  }
+}
+
+async function make() {
+  const units = [...selected];
+  if (!units.length) { setStatus("出題範囲を1つ以上選んでください。", true); return; }
+  const count = parseInt($("count").value, 10);
+  if (!(count >= 1 && count <= 100)) { setStatus("問題数は 1〜100 で入力してください。", true); return; }
+  const title = $("title").value.trim() || "計算プリント";
+  const seedIn = parseInt($("seed").value, 10);
+  const seed = seedIn >= 1 && seedIn <= 999999 ? seedIn : 1 + Math.floor(Math.random() * 999999);
+  const list = [...dates].sort();
+  const output = $("output").value;
+  $("make").disabled = true;
+  setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
+  await new Promise((r) => setTimeout(r, 30));
+  try {
+    const fn = py.globals.get("make");
+    const res = fn(py.toPy(units), count, seed, $("shuffle").checked, title, py.toPy(list), $("spacing").value, output, $("order").value === "last");
+    lastPdf = res.toJs(); res.destroy(); fn.destroy();
+    const suffix = { both: "", problems: "_問題", answers: "_解答" }[output];
+    const span = list.length ? "_" + list[0].replaceAll("-", "") + (list.length > 1 ? "-" + list[list.length - 1].replaceAll("-", "") : "") : "";
+    lastName = `${title}${suffix}${span}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
+    await render(lastPdf);
+    setStatus(`できました（プリント番号 ${String(seed).padStart(6, "0")}）`);
+    if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
+  } catch (e) {
+    console.error(e);
+    setStatus("作成できませんでした: " + (e.message || e), true);
+  } finally {
+    $("make").disabled = false;
+  }
+}
+
+async function render(bytes) {
+  const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+  const box = $("pages");
+  const frag = document.createDocumentFragment();
+  const width = Math.max(300, box.clientWidth - 8);
+  const max = Math.min(doc.numPages, 40);
+  for (let i = 1; i <= max; i++) {
+    const page = await doc.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: (width / base.width) * Math.min(window.devicePixelRatio || 1, 2) });
+    const cv = document.createElement("canvas");
+    cv.width = vp.width; cv.height = vp.height;
+    cv.setAttribute("aria-label", `${i}ページ目`);
+    await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    frag.append(cv);
+  }
+  box.replaceChildren(frag);
+  box.scrollTop = 0;
+  $("pinfo").textContent = doc.numPages > max ? `${doc.numPages} ページ（最初の${max}ページを表示）` : `${doc.numPages} ページ`;
+}
+
+$("f").addEventListener("submit", (e) => { e.preventDefault(); if (py) make(); });
+$("save").addEventListener("click", async () => {
+  if (!lastPdf) return;
+  const blob = new Blob([lastPdf], { type: "application/pdf" });
+  if (inClaude) {
+    if (!downloads) return;
+    try { await downloads.save({ filename: lastName, data: blob }); setStatus("ダウンロードしました"); }
+    catch (e) {
+      if (e && e.code === "declined") setStatus("ダウンロードをキャンセルしました");
+      else if (e && e.code === "rate_limited") setStatus("少し待ってからもう一度押してください", true);
+      else { setStatus("この画面ではダウンロードできません", true); $("save").hidden = true; }
+    }
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = lastName;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+});
+
+if (inClaude) {
+  (async () => {
+    try { downloads = await window.claude.use("downloads"); } catch { downloads = null; }
+    if (downloads && lastPdf) { $("save").hidden = false; $("save").disabled = false; }
+  })();
+}
+boot();
+</script>
+
+</body>
+</html>
