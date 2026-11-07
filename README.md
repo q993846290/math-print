@@ -14,6 +14,6 @@
 
 - `index.html` 画面
 - `py/bundle-*.b64.txt` 問題を作るプログラム（worksheets）と reportlab を zip にして base64 にしたもの
-- `fonts/` Zen Maru Gothic（SIL Open Font License 1.1）、KaTeX フォント（MIT ライセンス）
+- `fonts/` Klee One（教科書体風、SIL Open Font License 1.1）、KaTeX フォント（MIT ライセンス）
 - `pyodide/` ブラウザで Python を動かすための Pyodide 0.26.4
 - `pdf.min.js` / `pdf.worker.min.js` プレビュー表示用の PDF.js 3.11.174
