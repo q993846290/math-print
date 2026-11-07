@@ -76,10 +76,11 @@ button, input, select { font: inherit; color: inherit; }
 .daybar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: .84rem; background: var(--soft); padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; }
 .daybar .grow { flex: 1 1 14em; min-width: 0; }
 .daybar input[type="number"] { width: 4.5em; }
-.tabs { display: flex; flex-wrap: wrap; gap: 2px 18px; margin-bottom: 14px; border-bottom: 1px solid var(--rule); }
-.tab { border: 0; background: none; padding: 6px 0; margin-bottom: -1px; border-bottom: 2px solid transparent; cursor: pointer; color: var(--sub); font-size: .86rem; }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 900; }
-.tab .cnt { font-size: .72rem; margin-left: 3px; font-variant-numeric: tabular-nums; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tab { border: 1.5px solid var(--rule); background: var(--bg); border-radius: 4px; padding: 5px 12px; cursor: pointer; color: var(--ink); font-size: .88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.tab:hover { border-color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab .cnt { font-size: .7rem; min-width: 1.5em; padding: 0 4px; border-radius: 999px; background: var(--red); color: #fff; text-align: center; font-variant-numeric: tabular-nums; }
 .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px 28px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; margin-bottom: 4px; font-size: .76rem; font-weight: 700; color: var(--faint); letter-spacing: .1em; }
@@ -155,7 +156,8 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
     </section>
 
     <section class="sec" aria-labelledby="h-unit">
-      <h2 id="h-unit">単元 <select id="grade" aria-label="学年"></select></h2>
+      <h2 id="h-unit">単元</h2>
+      <div class="tabs" role="tablist" id="tabs" aria-label="学年"></div>
       <div class="target" id="target"></div>
       <div class="daybar" id="daybar" hidden></div>
       <div class="cats" id="cats"></div>
@@ -166,22 +168,19 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       <h2 id="h-set">設定</h2>
       <div class="grid">
         <div class="field wide"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
-        <div class="field"><label for="count">問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
-        <label class="check"><input id="sections" type="checkbox" checked>大問構成</label>
+        <div class="field"><label for="count">1日の問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
+        <div class="field"><label for="spacing">計算スペース</label>
+          <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
+        <div class="field"><label for="output">出力</label>
+          <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
+        <div class="field"><label for="order">解答の位置</label>
+          <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
+        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
       </div>
-      <details class="more">
-        <summary>その他の設定</summary>
-        <div class="grid">
-          <div class="field"><label for="spacing">計算スペース</label>
-            <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
-          <div class="field"><label for="output">出力</label>
-            <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
-          <div class="field"><label for="order">解答の位置</label>
-            <select id="order"><option value="day" selected>日ごと</option><option value="last">最後にまとめる</option></select></div>
-          <div class="field"><label for="seed">プリント番号</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄で毎回ちがう問題"></div>
-          <label class="check"><input id="shuffle" type="checkbox">単元をまぜる</label>
-        </div>
-      </details>
+      <div class="checks">
+        <label class="check"><input id="sections" type="checkbox" checked>大問構成にする（単元ごとに「1 次の計算をしなさい。」とまとめる）</label>
+        <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する（大問構成にしないとき）</label>
+      </div>
     </section>
   </div>
 
@@ -296,14 +295,16 @@ function renderTarget() {
 
 function renderTabs() {
   const sel = currentSet();
-  const g = $("grade");
-  g.replaceChildren(...UNITS.map((x) => {
-    const n = x.cats.flatMap((c) => c.units).filter(([k]) => sel.has(k)).length;
-    return el("option", { value: x.grade, textContent: x.grade + (n ? `（${n}）` : "") });
+  $("tabs").replaceChildren(...UNITS.map((g) => {
+    const b = el("button", { type: "button", className: "tab", textContent: g.grade });
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", g.grade === grade ? "true" : "false");
+    const n = g.cats.flatMap((c) => c.units).filter(([k]) => sel.has(k)).length;
+    if (n) b.append(el("span", { className: "cnt", textContent: n }));
+    b.addEventListener("click", () => { grade = g.grade; store.set("grade", grade); renderUnits(); });
+    return b;
   }));
-  g.value = grade;
 }
-$("grade").addEventListener("change", (e) => { grade = e.target.value; store.set("grade", grade); renderUnits(); });
 
 function renderUnits() {
   renderTabs();
@@ -363,7 +364,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-8dc68e13f3.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-ec5b83408d.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
