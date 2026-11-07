@@ -7,20 +7,20 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
 <style>
 /* Layout: 白い紙面に罫線だけで区切る。左に設定を上から順に、右にプリントのプレビュー。色は墨一色、赤は解答の意味でだけ。 */
 :root {
-  --bg: #ffffff; --ink: #111111; --sub: #6b6b6b; --faint: #a3a3a3; --rule: #e6e6e6; --soft: #f5f5f5; --red: #c8321f;
+  --bg: #ffffff; --ink: #000000; --sub: #3d3d3d; --faint: #6e6e6e; --rule: #d4d4d4; --soft: #f5f5f5; --red: #c8321f;
   --font: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #121212; --ink: #ededed; --sub: #a0a0a0; --faint: #6e6e6e; --rule: #2a2a2a; --soft: #1c1c1c; --red: #ff8a7a; color-scheme: dark; }
+  :root:not([data-theme="light"]) { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; color-scheme: dark; }
 }
-:root[data-theme="dark"] { --bg: #121212; --ink: #ededed; --sub: #a0a0a0; --faint: #6e6e6e; --rule: #2a2a2a; --soft: #1c1c1c; --red: #ff8a7a; color-scheme: dark; }
+:root[data-theme="dark"] { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; color-scheme: dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; font-weight: 500; line-height: 1.7; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -28,11 +28,11 @@ button, input, select { font: inherit; color: inherit; }
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
 .bar-in { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap;
   padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.bar h1 { font-size: 1.05rem; font-weight: 700; margin: 0 auto 0 0; letter-spacing: .06em; }
+.bar h1 { font-size: 1.15rem; font-weight: 900; margin: 0 auto 0 0; letter-spacing: .06em; }
 .status { font-size: .8rem; color: var(--sub); }
 .status.err { color: var(--red); }
 
-.btn { border: 1px solid var(--ink); background: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 500; white-space: nowrap; }
+.btn { font-weight: 700; border: 1.5px solid var(--ink); background: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 500; white-space: nowrap; }
 .btn.primary { background: var(--ink); color: var(--bg); }
 .btn:disabled { opacity: .35; cursor: default; }
 .btn.sm { padding: 3px 10px; font-size: .8rem; border-color: var(--rule); }
@@ -46,8 +46,8 @@ button, input, select { font: inherit; color: inherit; }
 .col { min-width: 0; }
 .sec { padding-block: 24px; border-bottom: 1px solid var(--rule); min-width: 0; }
 .sec:last-child { border-bottom: 0; }
-.sec h2 { font-size: .95rem; font-weight: 700; margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; }
-.sec h2 .no { color: var(--faint); font-weight: 500; font-variant-numeric: tabular-nums; }
+.sec h2 { font-size: 1.05rem; font-weight: 900; margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; }
+.sec h2 .no { color: var(--faint); font-weight: 700; font-variant-numeric: tabular-nums; }
 .lead { color: var(--sub); font-size: .82rem; margin: 0 0 16px; }
 
 /* 日付 */
@@ -64,7 +64,7 @@ button, input, select { font: inherit; color: inherit; }
 .cal button.today { text-decoration: underline; text-underline-offset: 3px; }
 .cal button.on { background: var(--ink); color: var(--bg); }
 .quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.dsum { font-weight: 700; margin-bottom: 6px; }
+.dsum { font-weight: 900; margin-bottom: 6px; }
 .dlist { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .84rem; font-variant-numeric: tabular-nums; color: var(--sub); }
 .dlist .own { color: var(--ink); font-weight: 700; }
 
@@ -78,13 +78,13 @@ button, input, select { font: inherit; color: inherit; }
 .daybar input[type="number"] { width: 4.5em; }
 .tabs { display: flex; flex-wrap: wrap; gap: 2px 18px; margin-bottom: 14px; border-bottom: 1px solid var(--rule); }
 .tab { border: 0; background: none; padding: 6px 0; margin-bottom: -1px; border-bottom: 2px solid transparent; cursor: pointer; color: var(--sub); font-size: .86rem; }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 900; }
 .tab .cnt { font-size: .72rem; margin-left: 3px; font-variant-numeric: tabular-nums; }
 .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px 28px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
-legend { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; margin-bottom: 4px; font-size: .74rem; color: var(--faint); letter-spacing: .1em; }
+legend { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; margin-bottom: 4px; font-size: .76rem; font-weight: 700; color: var(--faint); letter-spacing: .1em; }
 legend .link { font-size: .72rem; letter-spacing: 0; }
-.unit { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .88rem; line-height: 1.5; }
+.unit { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .92rem; line-height: 1.5; }
 .unit input { margin-top: 3px; accent-color: var(--ink); }
 .chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 18px; font-size: .8rem; }
 .chosen .lbl { color: var(--sub); margin-right: 4px; }
@@ -95,7 +95,7 @@ legend .link { font-size: .72rem; letter-spacing: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 16px 20px; }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field.wide { grid-column: 1 / -1; }
-.field label { font-size: .76rem; color: var(--sub); }
+.field label { font-size: .78rem; font-weight: 700; color: var(--sub); }
 input[type="text"], input[type="number"], select { width: 100%; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 6px 0; background: transparent; }
 input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-bottom-color: var(--ink); }
 .checks { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
@@ -107,7 +107,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: no
 .preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 66px); align-self: start; min-width: 0; padding-top: 24px; }
 @media (max-width: 980px) { .preview { position: static; padding-top: 0; } }
 .pv-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-.pv-head h2 { font-size: .95rem; margin: 0; }
+.pv-head h2 { font-size: 1.05rem; font-weight: 900; margin: 0; }
 .pv-head span { font-size: .78rem; color: var(--sub); font-variant-numeric: tabular-nums; }
 .pages { max-height: calc(100vh - 150px); overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--soft); padding: 12px; border-radius: 4px; }
 @media (max-width: 980px) { .pages { max-height: 80vh; } }
@@ -375,7 +375,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-7b70417305.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-923717a868.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
