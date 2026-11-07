@@ -2,276 +2,367 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>算数プリント作成</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-/* Layout: 方眼ノートの紙面に、左が設定・右がプリントのプレビュー。先生の赤ペンを差し色に */
+/* Layout: 上に固定のツールバー（生徒・作成・ダウンロード）。左に設定の段、右にプリントを紙として並べる机。
+   明朝の見出しは印刷されるプリントの書体に合わせ、差し色は藍。赤は「解答・答え」の意味でだけ使う。 */
 :root {
-  --paper: #fbfcfd; --grid: #e7edf3; --card: #ffffff; --ink: #1d2733; --sub: #5a6877; --line: #d6dee6;
-  --red: #c8321f; --red-weak: #fbe9e6; --blue: #2f63c4; --on-red: #ffffff; --shadow: 0 1px 2px rgb(20 40 60 / .06), 0 8px 24px rgb(20 40 60 / .06);
-  --display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
-  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+  --bg: #f3f4f6; --surface: #ffffff; --raised: #f8f9fb; --ink: #12161d; --sub: #5b6473; --faint: #8a93a2;
+  --rule: #e2e5ea; --rule-strong: #c9ced6;
+  --ai: #1e3f8f; --ai-ink: #ffffff; --ai-weak: #e8edf8; --ai-line: #b9c6e6;
+  --red: #c42d1c; --red-weak: #fbeceb; --ok: #1d7a4c;
+  --desk: #dfe2e7; --sheet-shadow: 0 1px 2px rgba(18, 22, 29, .08), 0 8px 24px rgba(18, 22, 29, .08);
+  --display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --paper: #12171d; --grid: #1a2129; --card: #19212a; --ink: #e6ebf0; --sub: #9aa8b6; --line: #2c3743;
-  --red: #ef6b55; --red-weak: #3a1f1b; --blue: #7ea6f2; --on-red: #1a0d0a; --shadow: none; color-scheme: dark } }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1218; --surface: #161b23; --raised: #1b212b; --ink: #e8ebf0; --sub: #a3acba; --faint: #7a8494;
+    --rule: #262d38; --rule-strong: #364051;
+    --ai: #8fa9ff; --ai-ink: #0d1424; --ai-weak: #1c2640; --ai-line: #34467a;
+    --red: #ff8a7a; --red-weak: #3a1e1c; --ok: #6fd3a0;
+    --desk: #0b0e13; --sheet-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
 :root[data-theme="dark"] {
-  --paper: #12171d; --grid: #1a2129; --card: #19212a; --ink: #e6ebf0; --sub: #9aa8b6; --line: #2c3743;
-  --red: #ef6b55; --red-weak: #3a1f1b; --blue: #7ea6f2; --on-red: #1a0d0a; --shadow: none; color-scheme: dark }
+  --bg: #0f1218; --surface: #161b23; --raised: #1b212b; --ink: #e8ebf0; --sub: #a3acba; --faint: #7a8494;
+  --rule: #262d38; --rule-strong: #364051;
+  --ai: #8fa9ff; --ai-ink: #0d1424; --ai-weak: #1c2640; --ai-line: #34467a;
+  --red: #ff8a7a; --red-weak: #3a1e1c; --ok: #6fd3a0;
+  --desk: #0b0e13; --sheet-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
 * { box-sizing: border-box; }
-body { background-color: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.65;
-  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 6px; }
-h1 { font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0; letter-spacing: .02em; text-wrap: balance; }
-.badge { font-size: .78rem; font-weight: 700; color: var(--red); border: 1.5px solid var(--red); border-radius: 999px; padding: 1px 10px; transform: rotate(-3deg); display: inline-block; }
-.lead { color: var(--sub); margin: 0 0 22px; max-width: 62ch; }
-.layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 22px; align-items: start; }
-@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
-.stack { display: grid; gap: 16px; min-width: 0; }
-h2 { font-family: var(--display); font-size: 1.08rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
-h2 .n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--red); color: var(--on-red); font-size: .82rem; font-family: var(--body); }
-.grades { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0; padding: 8px 12px 8px; min-width: 0; }
-legend { font-weight: 700; padding: 0 4px; font-size: .92rem; }
-legend button { margin-left: 6px; font: inherit; font-size: .72rem; font-weight: 500; border: 1px solid var(--line); background: var(--card); color: var(--sub); border-radius: 999px; padding: 0 8px; cursor: pointer; }
-fieldset label { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .9rem; }
-fieldset input { margin-top: 5px; accent-color: var(--red); flex: none; }
-.tag { font-size: .7rem; color: var(--red); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-right: 4px; white-space: nowrap; }
-.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 14px; }
-.field label { display: block; font-weight: 700; font-size: .85rem; margin-bottom: 4px; }
-.field input, .field select { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
-.field input:focus-visible, .field select:focus-visible, button:focus-visible, fieldset input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.help { color: var(--sub); font-size: .76rem; margin-top: 3px; }
-.check { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: .92rem; }
-.check input { accent-color: var(--red); }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-button.go { font: inherit; font-weight: 700; background: var(--red); color: var(--on-red); border: 0; border-radius: 10px; padding: 11px 22px; cursor: pointer; }
-button.sec { font: inherit; font-weight: 700; background: transparent; color: var(--red); border: 1.5px solid var(--red); border-radius: 10px; padding: 9.5px 18px; cursor: pointer; }
-button:disabled { opacity: .45; cursor: default; }
-.status { color: var(--sub); font-size: .85rem; }
-.status.err { color: var(--red); }
-.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
-.pv-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
-.pv-head h2 { margin: 0; }
-.pages { display: grid; gap: 12px; max-height: calc(100vh - 140px); overflow-y: auto; padding: 4px; border-radius: 10px; background: var(--grid); }
-.pages canvas { width: 100%; height: auto; display: block; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgb(0 0 0 / .18); }
-.empty { padding: 48px 16px; text-align: center; color: var(--sub); font-size: .9rem; }
-.note { margin-top: 10px; font-size: .78rem; color: var(--sub); }
-@media (max-width: 900px) { .preview { position: static; } .pages { max-height: none; } }
-@media (prefers-reduced-motion: no-preference) { .pages canvas { animation: fade .25s ease-out; } @keyframes fade { from { opacity: .4 } } }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
 
-/* 学年タブ・単元・カレンダー */
-.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.tab { font: inherit; font-size: .86rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-.tab[aria-selected="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
-.tab .cnt { font-size: .7rem; background: var(--red); color: var(--on-red); border-radius: 999px; padding: 0 6px; }
-.cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
-.chosen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; min-height: 28px; align-items: center; }
-.chip { font: inherit; font-size: .78rem; border: 1px solid var(--line); background: var(--red-weak); color: var(--ink); border-radius: 999px; padding: 2px 6px 2px 10px; display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
-.chip span.x { color: var(--red); font-weight: 700; padding: 0 3px; }
-.muted { color: var(--sub); font-size: .82rem; }
-.linkbtn { font: inherit; font-size: .78rem; background: none; border: 0; color: var(--red); cursor: pointer; text-decoration: underline; padding: 0; }
-.cal { max-width: 340px; }
-.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 700; }
-.cal-head button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; width: 32px; height: 28px; cursor: pointer; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-variant-numeric: tabular-nums; }
-.cal-grid .dow { font-size: .72rem; color: var(--sub); padding: 2px 0; }
-.cal-grid .dow.sun, .cal-grid button.sun { color: var(--red); }
-.cal-grid .dow.sat, .cal-grid button.sat { color: var(--blue); }
-.cal-grid button { font: inherit; font-size: .85rem; height: 34px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--ink); cursor: pointer; }
-.cal-grid button:hover { border-color: var(--line); }
-.cal-grid button.today { border-color: var(--sub); }
-.cal-grid button.on { background: var(--red); color: var(--on-red); font-weight: 700; }
-.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.quick button { font: inherit; font-size: .78rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
-.datewrap { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+/* ツールバー */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.bar-in { max-width: 1440px; margin: 0 auto; display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand h1 { font-family: var(--display); font-weight: 800; font-size: 1.3rem; letter-spacing: .04em; margin: 0; }
+.brand .sub { color: var(--faint); font-size: .78rem; letter-spacing: .06em; }
+.who { display: flex; align-items: center; gap: 8px; }
+.who label { white-space: nowrap; font-size: .75rem; color: var(--sub); letter-spacing: .08em; }
+.who select { min-width: 9em; }
+.status { font-size: .82rem; color: var(--sub); min-height: 1.4em; }
+.status.err { color: var(--red); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--r); border: 1px solid var(--rule-strong);
+  background: var(--surface); padding: 7px 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--ai); color: var(--ai); }
+.btn.primary { background: var(--ai); border-color: var(--ai); color: var(--ai-ink); font-weight: 700; padding: 8px 20px; }
+.btn.primary:hover { filter: brightness(1.08); color: var(--ai-ink); }
+.btn:disabled { opacity: .45; cursor: default; filter: none; }
+.btn.sm { padding: 4px 10px; font-size: .82rem; }
+.btn.ghost { border-color: transparent; background: none; color: var(--sub); }
+.btn.ghost:hover { color: var(--red); }
+
+/* 本体 */
+.main { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px;
+  padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 1000px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+.sec { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px 20px; min-width: 0; }
+.sec > header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.sec h2 { font-family: var(--display); font-size: 1.12rem; font-weight: 800; margin: 0; letter-spacing: .03em; text-wrap: balance; }
+.sec h2 .no { font-family: var(--mono); font-size: .75rem; color: var(--ai); margin-right: 8px; letter-spacing: 0; vertical-align: 2px; }
+.sec header .aside { color: var(--sub); font-size: .82rem; }
+.help { color: var(--sub); font-size: .8rem; margin: 8px 0 0; }
+.muted { color: var(--sub); }
+
+/* 日付 */
+.datewrap { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 22px; }
 @media (max-width: 640px) { .datewrap { grid-template-columns: minmax(0, 1fr); } }
-.datelist { font-size: .82rem; color: var(--sub); line-height: 1.8; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-weight: 700; }
+.cal-head button { border: 0; background: none; font-size: 1.2rem; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--sub); }
+.cal-head button:hover { background: var(--raised); color: var(--ink); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; font-variant-numeric: tabular-nums; }
+.cal-grid .dow { font-size: .72rem; color: var(--faint); padding: 2px 0; }
+.cal-grid button { aspect-ratio: 1; max-width: 100%; border: 1px solid transparent; background: none; border-radius: 50%; cursor: pointer; font-size: .9rem; }
+.cal-grid button:hover { background: var(--raised); }
+.cal-grid .sun { color: var(--red); }
+.cal-grid .sat { color: var(--ai); }
+.cal-grid button.today { border-color: var(--rule-strong); }
+.cal-grid button.on { background: var(--ai); color: var(--ai-ink); font-weight: 700; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dates { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dcount { font-weight: 700; }
+.dlist { display: flex; flex-wrap: wrap; gap: 6px; }
+.dpill { font-variant-numeric: tabular-nums; border: 1px solid var(--rule-strong); border-radius: 999px; padding: 2px 10px; font-size: .82rem; background: var(--surface); }
+.dpill.own { border-color: var(--ai); color: var(--ai); }
+
+/* 単元：編集対象の切りかえ */
+.target { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+.target button { flex: none; border: 1px solid var(--rule-strong); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: .84rem; font-variant-numeric: tabular-nums; position: relative; }
+.target button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.target button.own::after { content: ""; position: absolute; top: 3px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--ai); }
+.daybar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r); background: var(--ai-weak); border: 1px solid var(--ai-line); margin-bottom: 12px; font-size: .86rem; }
+.daybar .grow { flex: 1 1 12em; min-width: 0; }
+.daybar input[type="number"] { width: 5.5em; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
+.tab { flex: none; border: 0; background: none; padding: 8px 12px; cursor: pointer; color: var(--sub); border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: .88rem; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ai); font-weight: 700; }
+.tab .cnt { display: inline-block; min-width: 1.5em; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: var(--ai); color: var(--ai-ink); font-size: .7rem; font-variant-numeric: tabular-nums; }
+.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 14px 22px; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { display: flex; align-items: center; justify-content: space-between; width: 100%; font-size: .72rem; letter-spacing: .12em; color: var(--sub); font-weight: 700; padding: 0 0 4px; border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
+legend button { border: 0; background: none; color: var(--ai); font-size: .75rem; cursor: pointer; letter-spacing: 0; }
+.unit { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; cursor: pointer; font-size: .9rem; line-height: 1.45; }
+.unit input { margin-top: 3px; accent-color: var(--ai); }
+.unit .new { font-size: .66rem; color: var(--red); border: 1px solid currentColor; border-radius: 3px; padding: 0 3px; margin-left: 4px; vertical-align: 1px; }
+.chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rule-strong); }
+.chip { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--rule-strong); background: var(--raised); border-radius: 4px; padding: 2px 4px 2px 8px; font-size: .8rem; cursor: pointer; }
+.chip:hover { border-color: var(--red); }
+.chip .x { color: var(--faint); }
+.linkbtn { border: 0; background: none; color: var(--ai); cursor: pointer; font-size: .8rem; }
+
+/* 自作問題 */
+.sets { display: flex; flex-direction: column; gap: 12px; }
+.set { border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; background: var(--raised); display: flex; flex-direction: column; gap: 8px; }
+.set-head { display: flex; gap: 8px; align-items: center; }
+.set-head input { flex: 1; min-width: 0; font-weight: 700; }
+.set textarea { width: 100%; min-height: 7.5em; resize: vertical; font-family: var(--mono); font-size: .82rem; line-height: 1.6; font-variant-ligatures: none; }
+.syntax { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 14px; font-size: .8rem; color: var(--sub); margin: 0; }
+.syntax code { font-variant-ligatures: none; font-family: var(--mono); color: var(--ink); background: var(--raised); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+details.more > summary { cursor: pointer; color: var(--sub); font-size: .84rem; margin-top: 10px; }
+
+/* 入力欄 */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px 18px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label, .field .lbl { font-size: .74rem; letter-spacing: .08em; color: var(--sub); font-weight: 700; }
+.field.wide { grid-column: 1 / -1; }
+input[type="text"], input[type="number"], select, textarea { width: 100%; border: 1px solid var(--rule-strong); border-radius: var(--r); padding: 7px 10px; background: var(--surface); }
+input:focus, select:focus, textarea:focus { border-color: var(--ai); outline: none; box-shadow: 0 0 0 3px var(--ai-weak); }
+.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 7px 12px; cursor: pointer; font-size: .86rem; }
+.seg button + button { border-left: 1px solid var(--rule-strong); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.seg .tex { font-family: var(--display); }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule-strong); border-radius: 999px; padding: 4px 12px 4px 8px; cursor: pointer; font-size: .86rem; background: var(--surface); }
+.toggle input { accent-color: var(--ai); }
+.toggle:has(input:checked) { border-color: var(--ai); background: var(--ai-weak); }
+
+.profile-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+.profile-row select { flex: 1 1 10em; width: auto; min-width: 0; }
+.tutor-head .badge { font-size: .68rem; letter-spacing: .1em; color: var(--ai); border: 1px solid var(--ai-line); border-radius: 3px; padding: 0 6px; }
+
+/* プレビュー（机の上の紙） */
+.desk { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); align-self: start; background: var(--desk); border-radius: 12px; padding: 14px; min-width: 0;
+  max-height: calc(100vh - 96px); display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 1000px) { .desk { position: static; max-height: none; } }
+.desk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 0 4px; }
+.desk-head h2 { font-family: var(--display); font-size: 1rem; margin: 0; }
+.desk-head .info { font-size: .78rem; color: var(--sub); font-variant-numeric: tabular-nums; }
+.pages { overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 4px; min-height: 360px; }
+@media (max-width: 1000px) { .pages { max-height: 80vh; } }
+.pages canvas { width: 100%; height: auto; background: #fff; box-shadow: var(--sheet-shadow); border-radius: 2px; display: block; }
+.empty { margin: auto; text-align: center; color: var(--sub); font-size: .9rem; padding: 40px 16px; }
+.empty .spin { width: 28px; height: 28px; border: 2px solid var(--rule-strong); border-top-color: var(--ai); border-radius: 50%; margin: 0 auto 12px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .empty .spin { animation: none; } }
+.desk .note { font-size: .76rem; color: var(--sub); margin: 0 4px; }
+.desk .note b { color: var(--red); font-weight: 500; }
+.foot { max-width: 1440px; margin: 0 auto; color: var(--faint); font-size: .74rem; padding-block: 0 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 </style>
 
 </head>
 <body>
-<div class="wrap">
-  <header><h1>算数プリント作成</h1></header>
-  <p class="lead">小学1年〜中学3年の単元から出題範囲を選び、日付を選んで「プリントを作る」を押すと、問題用紙と解答用紙の PDF ができます。何日分でも1つのファイルにまとまります。問題はこのページの中で作るので、入力した内容はどこにも送信されません。</p>
-
-  <div class="layout">
-    <form id="f" class="stack" novalidate>
-      <section class="card">
-        <h2><span class="n">1</span>出題範囲（複数選べます）</h2>
-        <div class="tabs" role="tablist" id="tabs"></div>
-        <div class="cats" id="cats"></div>
-        <div class="chosen" id="chosen"></div>
-      </section>
-
-      <section class="card">
-        <h2><span class="n">2</span>日付（複数選べます）</h2>
-        <div class="datewrap">
-          <div class="cal">
-            <div class="cal-head"><button type="button" id="prev" aria-label="前の月">‹</button><span id="month"></span><button type="button" id="next" aria-label="次の月">›</button></div>
-            <div class="cal-grid" id="cal"></div>
-            <div class="quick">
-              <button type="button" data-q="today">今日だけ</button>
-              <button type="button" data-q="week">今週の月〜金</button>
-              <button type="button" data-q="nextweek">来週の月〜金</button>
-              <button type="button" data-q="clear">すべて外す</button>
-            </div>
-          </div>
-          <div>
-            <div class="muted" id="dcount"></div>
-            <div class="datelist" id="dlist"></div>
-            <p class="help">日付をクリックで選択・解除。1日ごとに別の問題でプリントを作り、日付の順に1つの PDF にまとめます（最大31日）。日付を選ばないと、日付なしのプリントを1枚作ります。</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2><span class="n">3</span>プリントの設定</h2>
-        <div class="row">
-          <div class="field"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
-          <div class="field"><label for="count">1日の問題数（1〜100）</label><input id="count" type="number" min="1" max="100" value="12"></div>
-          <div class="field"><label for="spacing">計算スペース</label>
-            <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
-          <div class="field"><label for="output">出力</label>
-            <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
-          <div class="field"><label for="order">解答の位置</label>
-            <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
-          <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
-        </div>
-        <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する</label>
-      </section>
-
-      <div class="actions">
-        <button class="go" id="make" type="submit" disabled>プリントを作る</button>
-        <button class="sec" id="save" type="button" disabled hidden>PDF をダウンロード</button>
-        <span class="status" id="status" role="status">準備しています…（初回は 20MB ほど読み込みます）</span>
-      </div>
-    </form>
-
-    <section class="card preview" aria-label="プレビュー">
-      <div class="pv-head"><h2>プレビュー</h2><span class="status" id="pinfo"></span></div>
-      <div class="pages" id="pages"><div class="empty">準備ができると、ここに見本のプリントが表示されます。</div></div>
-      <p class="note">解答用紙は赤字です。左下の No. を「プリント番号」に入れると、同じ問題を作り直せます（複数日のときは1日目の番号）。</p>
-    </section>
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand"><h1>算数プリント作成</h1><span class="sub">小1〜中3 ・ 問題と解答をPDFで</span></div>
+    <div class="who"><label for="who">生徒</label><select id="who"></select></div>
+    <span class="status" id="status" role="status">準備しています…（初回は 20MB ほど読み込みます）</span>
+    <button class="btn primary" id="make" type="button" disabled>プリントを作る</button>
+    <button class="btn" id="save" type="button" disabled hidden>PDF をダウンロード</button>
   </div>
 </div>
+
+<div class="main">
+  <div class="col">
+    <section class="sec" aria-labelledby="h-date">
+      <header><h2 id="h-date"><span class="no">01</span>日付</h2><span class="aside">1日1枚ずつ別の問題で作り、1つのPDFにまとめます</span></header>
+      <div class="datewrap">
+        <div>
+          <div class="cal-head"><button type="button" id="prev" aria-label="前の月">‹</button><span id="month"></span><button type="button" id="next" aria-label="次の月">›</button></div>
+          <div class="cal-grid" id="cal"></div>
+          <div class="quick">
+            <button class="btn sm" type="button" data-q="today">今日だけ</button>
+            <button class="btn sm" type="button" data-q="week">今週の月〜金</button>
+            <button class="btn sm" type="button" data-q="nextweek">来週の月〜金</button>
+            <button class="btn sm ghost" type="button" data-q="clear">すべて外す</button>
+          </div>
+        </div>
+        <div class="dates">
+          <div class="dcount" id="dcount"></div>
+          <div class="dlist" id="dlist"></div>
+          <p class="help">日付をクリックで選択・解除（最大31日）。青い枠の日は、その日だけの単元を使います。日付を選ばないと、日付なしのプリントを1枚作ります。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="h-unit">
+      <header><h2 id="h-unit"><span class="no">02</span>出題範囲</h2><span class="aside">複数選べます。日ごとに選び直すこともできます</span></header>
+      <div class="target" id="target" aria-label="どの日の単元を選ぶか"></div>
+      <div class="daybar" id="daybar" hidden></div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="cats" id="cats"></div>
+      <div class="chosen" id="chosen"></div>
+    </section>
+
+    <section class="sec" aria-labelledby="h-own">
+      <header><h2 id="h-own"><span class="no">03</span>自作問題</h2><span class="aside">先生の問題を登録して、単元と同じように出題できます</span></header>
+      <div class="sets" id="sets"></div>
+      <div class="quick"><button class="btn sm" type="button" id="addset">＋ 問題セットを追加</button></div>
+      <details class="more">
+        <summary>書き方</summary>
+        <dl class="syntax">
+          <dt><code>問題 =&gt; 答え</code></dt><dd>1行に1問。答えは「=&gt;」のあとに書きます（省略可）</dd>
+          <dt><code>{3/4}</code></dt><dd>分数 3/4</dd>
+          <dt><code>x^2</code> <code>10^{12}</code></dt><dd>指数</dd>
+          <dt><code>√2</code> <code>√{12}</code></dt><dd>平方根</dd>
+          <dt><code>#</code></dt><dd>行の先頭に書くとメモ（出題しない）</dd>
+        </dl>
+        <p class="help">日本語を含む問題は文章題（答え欄つき）、式だけの問題は「＝」をつけた計算問題になります。登録した問題は出題範囲の「自作」タブで選べます。このブラウザにだけ保存されます。</p>
+      </details>
+    </section>
+
+    <section class="sec" aria-labelledby="h-set">
+      <header><h2 id="h-set"><span class="no">04</span>プリントの設定</h2></header>
+      <div class="grid">
+        <div class="field wide"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
+        <div class="field"><label for="count">1日の問題数（1〜100）</label><input id="count" type="number" min="1" max="100" value="12"></div>
+        <div class="field"><label for="spacing">計算スペース</label>
+          <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
+        <div class="field"><label for="output">出力</label>
+          <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
+        <div class="field"><label for="order">解答の位置</label>
+          <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
+        <div class="field"><span class="lbl">書体</span>
+          <div class="seg" id="font"><button type="button" class="tex" data-v="tex">教科書風</button><button type="button" data-v="gothic">ゴシック</button></div></div>
+        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
+      </div>
+      <div class="toggles"><label class="toggle"><input id="shuffle" type="checkbox">単元をまぜて出題する</label></div>
+      <p class="help">教科書風は、日本語が明朝体、数式は TeX の書体（x や y は数学のイタリック）になります。</p>
+    </section>
+
+    <section class="sec" aria-labelledby="h-tutor">
+      <header class="tutor-head"><h2 id="h-tutor"><span class="no">05</span>生徒と記入欄</h2><span class="badge">家庭教師・塾向け</span></header>
+      <div class="profile-row">
+        <select id="who2" aria-label="生徒を選ぶ"></select>
+        <button class="btn sm" type="button" id="psave">この生徒の設定を保存</button>
+        <button class="btn sm ghost" type="button" id="pdel">削除</button>
+      </div>
+      <div class="grid">
+        <div class="field"><label for="student">生徒名（「さん」は自動）</label><input id="student" type="text" maxlength="20" placeholder="例：山田 太郎"></div>
+        <div class="field"><label for="school">教室名・講師名（ページの下）</label><input id="school" type="text" maxlength="40" placeholder="例：ひまわり学習室　講師：林"></div>
+        <div class="field wide"><label for="note">ひとことメッセージ（1枚目の上）</label><input id="note" type="text" maxlength="60" placeholder="例：今日はグラフの読み取りをがんばろう！"></div>
+      </div>
+      <div class="toggles">
+        <label class="toggle"><input id="time_box" type="checkbox">かかった時間の欄</label>
+        <label class="toggle"><input id="comment_box" type="checkbox">先生のコメント欄</label>
+        <label class="toggle"><input id="parent_box" type="checkbox">保護者の確認欄</label>
+      </div>
+      <p class="help">「保存」すると、生徒名・出題範囲（日ごとの指定は除く）・設定・記入欄をこの生徒用に覚えます。上のバーの「生徒」から切りかえられます。保存先はこのブラウザだけです。</p>
+    </section>
+  </div>
+
+  <aside class="desk" aria-label="プレビュー">
+    <div class="desk-head"><h2>プレビュー</h2><span class="info" id="pinfo"></span></div>
+    <div class="pages" id="pages"><div class="empty"><div class="spin"></div>準備ができると、ここに見本のプリントが表示されます。</div></div>
+    <p class="note"><b>赤字</b>は解答用紙です。左下の No. を「プリント番号」に入れると、同じ問題を作り直せます（複数日のときは1日目の番号）。</p>
+  </aside>
+</div>
+<p class="foot">問題はこのページの中で作るので、入力した内容はどこにも送信されません。フォント：IPAex明朝・IPAゴシック（IPAフォントライセンス）、KaTeX フォント（MIT）。</p>
 
 <script src="pyodide/pyodide.js"></script>
 <script src="pdf.min.js"></script>
 <script>
-const UNITS = [{"grade": "小学1年", "cats": [{"cat": "数と計算", "units": [["e1_add_nocarry", "たし算（くり上がりなし）"], ["e1_add_carry", "たし算（くり上がりあり）"], ["e1_sub_noborrow", "ひき算（くり下がりなし）"], ["e1_sub_borrow", "ひき算（くり下がりあり）"], ["c1_numbers", "100までの数・数の順序と大小"], ["c1_three", "3つの数の計算"], ["c1_compose", "20までの数の構成"]]}, {"cat": "量と測定", "units": [["c1_clock", "時計の読み方（何時・何時半）"]]}]}, {"grade": "小学2年", "cats": [{"cat": "数と計算", "units": [["e2_add2", "2けたのたし算"], ["e2_sub2", "2けたのひき算"], ["e2_kuku", "かけ算九九"], ["c2_place", "1000・10000までの数"], ["c2_vertical", "たし算・ひき算の筆算"], ["c2_mul_property", "かけ算の性質"]]}, {"cat": "量と測定", "units": [["c2_length", "長さ・かさの単位（cm・mm・m・L・dL・mL）"], ["c2_time", "時刻と時間"]]}, {"cat": "その他", "units": [["c2_pattern", "数の並び方・規則性"]]}]}, {"grade": "小学3年", "cats": [{"cat": "数と計算", "units": [["e3_add3", "3けたのたし算"], ["e3_sub3", "3けたのひき算"], ["e3_mul_x1", "かけ算（×1けた）"], ["e3_mul_2x2", "かけ算（2けた×2けた）"], ["e3_div_exact", "わり算（あまりなし）"], ["e3_div_rem", "わり算（あまりあり）"], ["c3_big", "大きな数（一万・十万・百万）"], ["c3_add4", "4けたのたし算・ひき算"], ["c3_vertical_mul", "かけ算の筆算（2・3けた×1けた）"], ["c3_frac_compare", "分数の大小"], ["c3_dec1", "小数のたし算・ひき算（小数第1位）"], ["c3_box", "□を使った式"]]}, {"cat": "図形", "units": [["c3_circle", "円の半径と直径"]]}, {"cat": "量と測定", "units": [["c3_units", "長さ・重さ・時間の単位（km・kg・t・秒）"]]}]}, {"grade": "小学4年", "cats": [{"cat": "数と計算", "units": [["e4_div_3by1", "わり算（3けた÷1けた）"], ["e4_div_by2", "わり算（÷2けた）"], ["e4_order", "計算のじゅんじょ（四則混合）"], ["e4_dec_addsub", "小数のたし算・ひき算"], ["c4_big", "大きな数（億・兆）"], ["c4_dec_muldiv", "小数のかけ算・わり算（×整数・÷整数）"], ["c4_frac_same", "同分母分数のたし算・ひき算"], ["c4_box2", "□や△を使った式"]]}, {"cat": "図形", "units": [["g4_rect", "長方形・正方形の面積とまわり"], ["c4_angle", "角の大きさ"]]}, {"cat": "量と測定", "units": [["c4_area_unit", "面積の単位（cm²・m²・a・ha・km²）"], ["c4_round", "概数・四捨五入"]]}]}, {"grade": "小学5年", "cats": [{"cat": "数と計算", "units": [["e5_dec_mul", "小数のかけ算"], ["e5_dec_div", "小数のわり算"], ["e5_frac_addsub", "分数のたし算・ひき算（通分）"], ["c5_gcd_lcm", "公倍数・公約数"], ["c5_divisors", "倍数・約数・素数"], ["c5_frac_dec", "分数と小数・整数の関係"], ["c5_percent", "割合・百分率・歩合"]]}, {"cat": "図形", "units": [["g5_area", "三角形・平行四辺形・台形の面積"], ["g5_volume", "直方体・立方体の体積"], ["g5_triangle_angle", "三角形の角"]]}, {"cat": "量と測定", "units": [["c5_average", "平均"], ["c5_per_unit", "単位量あたりの大きさ"], ["c5_speed", "速さ・道のり・時間"]]}]}, {"grade": "小学6年", "cats": [{"cat": "数と計算", "units": [["e6_frac_muldiv", "分数のかけ算・わり算"], ["c6_mixed", "分数・小数・整数の混合計算"], ["c6_letter", "文字を使った式"], ["c6_ratio", "比と比の値"], ["c6_proportion", "比例・反比例"]]}, {"cat": "図形", "units": [["g6_circle", "円の面積・円周の長さ"], ["c6_scale", "拡大図と縮図（縮尺）"], ["c6_prism_vol", "角柱・円柱の体積"]]}, {"cat": "データの活用", "units": [["c6_data", "代表値（平均値・中央値・最頻値）"], ["c6_cases", "起こり得る場合の数"]]}]}, {"grade": "中学1年", "cats": [{"cat": "数と式", "units": [["j1_int_addsub", "正負の数の加法・減法"], ["j1_int_muldiv", "正負の数の乗法・除法・累乗"], ["j1_letter", "文字式の計算"], ["j1_linear_eq", "一次方程式"], ["d1_abs", "数の大小・絶対値"], ["d1_value", "文字式の値"], ["d1_eq_more", "かっこ・分数・小数を含む方程式"], ["d1_word_eq", "方程式の文章問題"]]}, {"cat": "図形", "units": [["h1_sector", "おうぎ形の弧の長さ・面積"], ["h1_solid", "円柱・円錐の体積"], ["d1_surface", "表面積（円柱・直方体）"]]}, {"cat": "関数", "units": [["d1_func", "比例・反比例の式"]]}, {"cat": "データの活用", "units": [["d1_relfreq", "相対度数"]]}]}, {"grade": "中学2年", "cats": [{"cat": "数と式", "units": [["j2_poly", "多項式の加法・減法"], ["j2_monomial", "単項式の乗法・除法"], ["j2_simul", "連立方程式"], ["d2_transform", "等式の変形"], ["d2_word_simul", "連立方程式の文章問題"]]}, {"cat": "図形", "units": [["h2_parallel", "平行線と角"], ["h2_polygon", "多角形の内角・外角"]]}, {"cat": "関数", "units": [["d2_linear", "一次関数の式・変化の割合"]]}, {"cat": "データの活用", "units": [["d2_prob", "確率"], ["d2_quartile", "四分位数・四分位範囲"]]}]}, {"grade": "中学3年", "cats": [{"cat": "数と式", "units": [["j3_expand", "式の展開"], ["j3_factor", "因数分解"], ["j3_sqrt", "平方根の計算"], ["j3_quad", "二次方程式（因数分解で解く）"], ["d3_prime", "素因数分解"], ["d3_rationalize", "分母の有理化"], ["d3_quad_more", "二次方程式（平方根・解の公式）"]]}, {"cat": "図形", "units": [["h3_pythagoras", "三平方の定理"], ["d3_similar", "相似比と面積比・体積比"], ["d3_inscribed", "円周角の定理"]]}, {"cat": "関数", "units": [["d3_ax2", "関数 y=ax²"]]}, {"cat": "データの活用", "units": [["d3_sample", "標本調査"]]}]}];
+const UNITS = [{"grade": "小学1年", "cats": [{"cat": "数と計算", "units": [["e1_add_nocarry", "たし算（くり上がりなし）"], ["e1_add_carry", "たし算（くり上がりあり）"], ["e1_sub_noborrow", "ひき算（くり下がりなし）"], ["e1_sub_borrow", "ひき算（くり下がりあり）"], ["c1_numbers", "100までの数・数の順序と大小"], ["c1_three", "3つの数の計算"], ["c1_compose", "20までの数の構成"]]}, {"cat": "量と測定", "units": [["c1_clock", "時計の読み方（何時・何時半）"]]}]}, {"grade": "小学2年", "cats": [{"cat": "数と計算", "units": [["e2_add2", "2けたのたし算"], ["e2_sub2", "2けたのひき算"], ["e2_kuku", "かけ算九九"], ["c2_place", "1000・10000までの数"], ["c2_vertical", "たし算・ひき算の筆算"], ["c2_mul_property", "かけ算の性質"]]}, {"cat": "量と測定", "units": [["c2_length", "長さ・かさの単位（cm・mm・m・L・dL・mL）"], ["c2_time", "時刻と時間"]]}, {"cat": "その他", "units": [["c2_pattern", "数の並び方・規則性"]]}]}, {"grade": "小学3年", "cats": [{"cat": "数と計算", "units": [["e3_add3", "3けたのたし算"], ["e3_sub3", "3けたのひき算"], ["e3_mul_x1", "かけ算（×1けた）"], ["e3_mul_2x2", "かけ算（2けた×2けた）"], ["e3_div_exact", "わり算（あまりなし）"], ["e3_div_rem", "わり算（あまりあり）"], ["c3_big", "大きな数（一万・十万・百万）"], ["c3_add4", "4けたのたし算・ひき算"], ["c3_vertical_mul", "かけ算の筆算（2・3けた×1けた）"], ["c3_frac_compare", "分数の大小"], ["c3_dec1", "小数のたし算・ひき算（小数第1位）"], ["c3_box", "□を使った式"]]}, {"cat": "図形", "units": [["c3_circle", "円の半径と直径"]]}, {"cat": "量と測定", "units": [["c3_units", "長さ・重さ・時間の単位（km・kg・t・秒）"]]}]}, {"grade": "小学4年", "cats": [{"cat": "数と計算", "units": [["e4_div_3by1", "わり算（3けた÷1けた）"], ["e4_div_by2", "わり算（÷2けた）"], ["e4_order", "計算のじゅんじょ（四則混合）"], ["e4_dec_addsub", "小数のたし算・ひき算"], ["c4_big", "大きな数（億・兆）"], ["c4_dec_muldiv", "小数のかけ算・わり算（×整数・÷整数）"], ["c4_frac_same", "同分母分数のたし算・ひき算"], ["c4_box2", "□や△を使った式"]]}, {"cat": "図形", "units": [["g4_rect", "長方形・正方形の面積とまわり"], ["c4_angle", "角の大きさ"]]}, {"cat": "量と測定", "units": [["c4_area_unit", "面積の単位（cm²・m²・a・ha・km²）"], ["c4_round", "概数・四捨五入"]]}]}, {"grade": "小学5年", "cats": [{"cat": "数と計算", "units": [["e5_dec_mul", "小数のかけ算"], ["e5_dec_div", "小数のわり算"], ["e5_frac_addsub", "分数のたし算・ひき算（通分）"], ["c5_gcd_lcm", "公倍数・公約数"], ["c5_divisors", "倍数・約数・素数"], ["c5_frac_dec", "分数と小数・整数の関係"], ["c5_percent", "割合・百分率・歩合"]]}, {"cat": "図形", "units": [["g5_area", "三角形・平行四辺形・台形の面積"], ["g5_volume", "直方体・立方体の体積"], ["g5_triangle_angle", "三角形の角"]]}, {"cat": "量と測定", "units": [["c5_average", "平均"], ["c5_per_unit", "単位量あたりの大きさ"], ["c5_speed", "速さ・道のり・時間"]]}]}, {"grade": "小学6年", "cats": [{"cat": "数と計算", "units": [["e6_frac_muldiv", "分数のかけ算・わり算"], ["c6_mixed", "分数・小数・整数の混合計算"], ["c6_letter", "文字を使った式"], ["c6_ratio", "比と比の値"], ["c6_proportion", "比例・反比例"]]}, {"cat": "図形", "units": [["g6_circle", "円の面積・円周の長さ"], ["c6_scale", "拡大図と縮図（縮尺）"], ["c6_prism_vol", "角柱・円柱の体積"]]}, {"cat": "データの活用", "units": [["c6_data", "代表値（平均値・中央値・最頻値）"], ["c6_cases", "起こり得る場合の数"]]}]}, {"grade": "中学1年", "cats": [{"cat": "数と式", "units": [["j1_int_addsub", "正負の数の加法・減法"], ["j1_int_muldiv", "正負の数の乗法・除法・累乗"], ["j1_letter", "文字式の計算"], ["j1_linear_eq", "一次方程式"], ["d1_abs", "数の大小・絶対値"], ["d1_value", "文字式の値"], ["d1_eq_more", "かっこ・分数・小数を含む方程式"], ["d1_word_eq", "方程式の文章問題"]]}, {"cat": "図形", "units": [["h1_sector", "おうぎ形の弧の長さ・面積"], ["h1_solid", "円柱・円錐の体積"], ["d1_surface", "表面積（円柱・直方体）"]]}, {"cat": "関数", "units": [["d1_func", "比例・反比例の式"], ["g1_prop_graph", "比例・反比例のグラフ"]]}, {"cat": "データの活用", "units": [["d1_relfreq", "相対度数"]]}]}, {"grade": "中学2年", "cats": [{"cat": "数と式", "units": [["j2_poly", "多項式の加法・減法"], ["j2_monomial", "単項式の乗法・除法"], ["j2_simul", "連立方程式"], ["d2_transform", "等式の変形"], ["d2_word_simul", "連立方程式の文章問題"]]}, {"cat": "図形", "units": [["h2_parallel", "平行線と角"], ["h2_polygon", "多角形の内角・外角"]]}, {"cat": "関数", "units": [["d2_linear", "一次関数の式・変化の割合"], ["g2_linear_graph", "一次関数のグラフ"]]}, {"cat": "データの活用", "units": [["d2_prob", "確率"], ["d2_quartile", "四分位数・四分位範囲"]]}]}, {"grade": "中学3年", "cats": [{"cat": "数と式", "units": [["j3_expand", "式の展開"], ["j3_factor", "因数分解"], ["j3_sqrt", "平方根の計算"], ["j3_quad", "二次方程式（因数分解で解く）"], ["d3_prime", "素因数分解"], ["d3_rationalize", "分母の有理化"], ["d3_quad_more", "二次方程式（平方根・解の公式）"]]}, {"cat": "図形", "units": [["h3_pythagoras", "三平方の定理"], ["d3_similar", "相似比と面積比・体積比"], ["d3_inscribed", "円周角の定理"]]}, {"cat": "関数", "units": [["d3_ax2", "関数 y=ax²"], ["g3_ax2_graph", "関数 y=ax² のグラフ"]]}, {"cat": "データの活用", "units": [["d3_sample", "標本調査"]]}]}];
+const NEW_UNITS = new Set(["g1_prop_graph", "g2_linear_graph", "g3_ax2_graph"]);
 const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e; };
 const store = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  get(k, d) { try { const v = localStorage.getItem("mp3:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("mp3:" + k, JSON.stringify(v)); } catch {} },
 };
-
-// ---------- 出題範囲 ----------
-const unitName = {};
-for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${g.grade.replace("小学", "小").replace("中学", "中")} ${n}`;
-const selected = new Set(store.get("units", ["e5_frac_addsub", "g5_area", "c5_percent"]).filter((k) => unitName[k]));
-let grade = store.get("grade", "小学5年");
-if (!UNITS.some((g) => g.grade === grade)) grade = UNITS[0].grade;
-
-function renderTabs() {
-  const tabs = $("tabs");
-  tabs.replaceChildren();
-  for (const g of UNITS) {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab");
-    b.setAttribute("aria-selected", g.grade === grade ? "true" : "false");
-    b.textContent = g.grade;
-    const n = g.cats.flatMap((c) => c.units).filter(([k]) => selected.has(k)).length;
-    if (n) { const s = document.createElement("span"); s.className = "cnt"; s.textContent = n; b.append(s); }
-    b.addEventListener("click", () => { grade = g.grade; store.set("grade", grade); renderUnits(); });
-    tabs.append(b);
-  }
-}
-
-function renderUnits() {
-  renderTabs();
-  const box = $("cats");
-  box.replaceChildren();
-  const g = UNITS.find((x) => x.grade === grade);
-  for (const c of g.cats) {
-    const fs = document.createElement("fieldset");
-    const lg = document.createElement("legend");
-    lg.textContent = c.cat;
-    const all = document.createElement("button");
-    all.type = "button"; all.textContent = "すべて";
-    all.addEventListener("click", () => {
-      const on = c.units.every(([k]) => selected.has(k));
-      c.units.forEach(([k]) => (on ? selected.delete(k) : selected.add(k)));
-      saveUnits(); renderUnits();
-    });
-    lg.append(all); fs.append(lg);
-    for (const [key, name] of c.units) {
-      const lab = document.createElement("label");
-      const cb = document.createElement("input");
-      cb.type = "checkbox"; cb.id = "u_" + key; cb.checked = selected.has(key);
-      cb.addEventListener("change", () => { cb.checked ? selected.add(key) : selected.delete(key); saveUnits(); renderTabs(); renderChosen(); });
-      const t = document.createElement("span"); t.textContent = name;
-      lab.append(cb, t); fs.append(lab);
-    }
-    box.append(fs);
-  }
-  renderChosen();
-}
-
-function renderChosen() {
-  const box = $("chosen");
-  box.replaceChildren();
-  if (!selected.size) { const m = document.createElement("span"); m.className = "muted"; m.textContent = "まだ選ばれていません。"; box.append(m); return; }
-  const m = document.createElement("span"); m.className = "muted"; m.textContent = `選択中 ${selected.size} 単元：`; box.append(m);
-  for (const k of selected) {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "chip"; b.title = "外す";
-    b.append(unitName[k]);
-    const x = document.createElement("span"); x.className = "x"; x.textContent = "×"; b.append(x);
-    b.addEventListener("click", () => { selected.delete(k); saveUnits(); renderUnits(); });
-    box.append(b);
-  }
-  const clr = document.createElement("button"); clr.type = "button"; clr.className = "linkbtn"; clr.textContent = "すべて外す";
-  clr.addEventListener("click", () => { selected.clear(); saveUnits(); renderUnits(); });
-  box.append(clr);
-}
-function saveUnits() { store.set("units", [...selected]); }
-
-// ---------- 日付 ----------
+const DOW = "日月火水木金土";
 const pad = (n) => String(n).padStart(2, "0");
 const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const short = (k) => { const d = new Date(k + "T00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`; };
+
+// ---------- 状態 ----------
+const unitName = {};
+for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${g.grade.replace("小学", "小").replace("中学", "中")} ${n}`;
+
+const EXAMPLE_SET = { key: "custom:ex", name: "例：分数と文章題（自由に書きかえてください）",
+  text: "# 1行に1問。「=>」のあとが答えです\n{2/3} + {1/4} => {11/12}\n{5/6} - {1/2} => {1/3}\n3x^2 × 2x => 6x^3\n√{12} + √3 => 3√3\n1本80円のえんぴつを6本買うと、代金はいくらですか。 => 480円" };
+let custom = store.get("custom", [EXAMPLE_SET]);
+const customName = (k) => (custom.find((s) => s.key === k) || {}).name;
+const label = (k) => unitName[k] || (customName(k) ? "自作 " + customName(k) : null);
+
+let common = new Set(store.get("units", ["e5_frac_addsub", "g5_area", "c5_percent"]).filter(label));
+let perDay = store.get("perDay", {}); // iso → {units:[...], count}
 const today = new Date(); today.setHours(0, 0, 0, 0);
 const dates = new Set([iso(today)]);
-let view = new Date(today.getFullYear(), today.getMonth(), 1);
-const DOW = "日月火水木金土";
+let target = "common";
+let grade = store.get("grade", "小学5年");
+const GRADES = [...UNITS.map((g) => g.grade), "自作"];
+if (!GRADES.includes(grade)) grade = UNITS[0].grade;
 
+function saveAll() { store.set("units", [...common]); store.set("perDay", perDay); store.set("custom", custom); }
+function currentSet() {
+  if (target !== "common" && perDay[target]) return new Set(perDay[target].units);
+  return common;
+}
+function writeSet(s) {
+  if (target !== "common" && perDay[target]) perDay[target].units = [...s];
+  else common = s;
+  saveAll();
+}
+
+// ---------- 日付 ----------
+let view = new Date(today.getFullYear(), today.getMonth(), 1);
 function renderCal() {
   $("month").textContent = `${view.getFullYear()}年${view.getMonth() + 1}月`;
   const grid = $("cal");
   grid.replaceChildren();
-  DOW.split("").forEach((d, i) => { const e = document.createElement("div"); e.className = "dow" + (i === 0 ? " sun" : i === 6 ? " sat" : ""); e.textContent = d; grid.append(e); });
-  for (let i = 0; i < view.getDay(); i++) grid.append(document.createElement("div"));
-  const days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-  for (let d = 1; d <= days; d++) {
+  DOW.split("").forEach((d, i) => grid.append(el("div", { className: "dow" + (i === 0 ? " sun" : i === 6 ? " sat" : ""), textContent: d })));
+  for (let i = 0; i < view.getDay(); i++) grid.append(el("div"));
+  const n = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+  for (let d = 1; d <= n; d++) {
     const date = new Date(view.getFullYear(), view.getMonth(), d);
     const k = iso(date);
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = d;
+    const b = el("button", { type: "button", textContent: d });
     b.className = [date.getDay() === 0 ? "sun" : date.getDay() === 6 ? "sat" : "", dates.has(k) ? "on" : "", k === iso(today) ? "today" : ""].join(" ");
     b.setAttribute("aria-pressed", dates.has(k) ? "true" : "false");
     b.setAttribute("aria-label", `${view.getMonth() + 1}月${d}日`);
-    b.addEventListener("click", () => { if (dates.has(k)) dates.delete(k); else if (dates.size < 31) dates.add(k); renderCal(); });
+    b.addEventListener("click", () => { if (dates.has(k)) dates.delete(k); else if (dates.size < 31) dates.add(k); renderDates(); });
     grid.append(b);
   }
+}
+function renderDates() {
+  renderCal();
   const list = [...dates].sort();
+  if (target !== "common" && !dates.has(target)) target = "common";
   $("dcount").textContent = list.length ? `${list.length} 日分を作ります` : "日付なしで1枚作ります";
-  $("dlist").textContent = list.map((k) => { const d = new Date(k + "T00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`; }).join("　");
+  $("dlist").replaceChildren(...list.map((k) => el("span", { className: "dpill" + (perDay[k] ? " own" : ""), textContent: short(k) })));
+  renderTarget();
 }
 $("prev").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
 $("next").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });
@@ -284,18 +375,222 @@ document.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click",
     for (let i = 0; i < 5; i++) { const d = new Date(mon); d.setDate(mon.getDate() + i); dates.add(iso(d)); }
     view = new Date(mon.getFullYear(), mon.getMonth(), 1);
   }
-  renderCal();
+  renderDates();
 }));
 
+// ---------- 出題範囲 ----------
+function renderTarget() {
+  const box = $("target");
+  const list = [...dates].sort();
+  box.hidden = list.length < 2 && !list.some((k) => perDay[k]);
+  box.replaceChildren();
+  const mk = (key, text) => {
+    const b = el("button", { type: "button", textContent: text });
+    b.setAttribute("aria-pressed", target === key ? "true" : "false");
+    if (key !== "common" && perDay[key]) b.classList.add("own");
+    b.addEventListener("click", () => { target = key; renderTarget(); renderUnits(); });
+    box.append(b);
+  };
+  mk("common", "すべての日（共通）");
+  list.forEach((k) => mk(k, short(k)));
+  const bar = $("daybar");
+  if (target === "common") { bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.replaceChildren();
+  if (!perDay[target]) {
+    bar.append(el("span", { className: "grow", textContent: `${short(target)} は共通の単元を使います。` }),
+      el("button", { className: "btn sm", type: "button", textContent: "この日だけ単元を変える", onclick: () => {
+        perDay[target] = { units: [...common], count: null }; saveAll(); renderDates(); renderUnits();
+      } }));
+  } else {
+    const cnt = el("input", { type: "number", min: 1, max: 100, placeholder: $("count").value, value: perDay[target].count || "", id: "daycount" });
+    cnt.addEventListener("input", () => { const v = parseInt(cnt.value, 10); perDay[target].count = v >= 1 && v <= 100 ? v : null; saveAll(); });
+    bar.append(el("span", { className: "grow", textContent: `${short(target)} だけの単元を選んでいます。` }),
+      el("label", { htmlFor: "daycount", textContent: "問題数" }), cnt,
+      el("button", { className: "btn sm ghost", type: "button", textContent: "共通に戻す", onclick: () => {
+        delete perDay[target]; saveAll(); renderDates(); renderUnits();
+      } }));
+  }
+}
+
+function renderTabs() {
+  const tabs = $("tabs");
+  tabs.replaceChildren();
+  const sel = currentSet();
+  for (const g of GRADES) {
+    const b = el("button", { type: "button", className: "tab", textContent: g });
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", g === grade ? "true" : "false");
+    const keys = g === "自作" ? custom.map((s) => s.key) : UNITS.find((x) => x.grade === g).cats.flatMap((c) => c.units.map(([k]) => k));
+    const n = keys.filter((k) => sel.has(k)).length;
+    if (n) b.append(el("span", { className: "cnt", textContent: n }));
+    b.addEventListener("click", () => { grade = g; store.set("grade", grade); renderUnits(); });
+    tabs.append(b);
+  }
+}
+
+function unitBox(key, name, sel, isNew) {
+  const cb = el("input", { type: "checkbox", id: "u_" + key, checked: sel.has(key) });
+  cb.addEventListener("change", () => { const s = currentSet(); cb.checked ? s.add(key) : s.delete(key); writeSet(s); renderTabs(); renderChosen(); });
+  const t = el("span", { textContent: name });
+  if (isNew) t.append(el("span", { className: "new", textContent: "NEW" }));
+  return el("label", { className: "unit" }, cb, t);
+}
+
+function renderUnits() {
+  renderTabs();
+  const box = $("cats");
+  box.replaceChildren();
+  const sel = currentSet();
+  const groups = grade === "自作"
+    ? [{ cat: "自作問題", units: custom.map((s) => [s.key, s.name || "（名前なし）"]) }]
+    : UNITS.find((x) => x.grade === grade).cats;
+  for (const c of groups) {
+    const all = el("button", { type: "button", textContent: "すべて" });
+    all.addEventListener("click", () => {
+      const s = currentSet();
+      const on = c.units.every(([k]) => s.has(k));
+      c.units.forEach(([k]) => (on ? s.delete(k) : s.add(k)));
+      writeSet(s); renderUnits();
+    });
+    const fs = el("fieldset", {}, el("legend", {}, c.cat, all));
+    for (const [key, name] of c.units) fs.append(unitBox(key, name, sel, NEW_UNITS.has(key)));
+    if (!c.units.length) fs.append(el("p", { className: "help", textContent: "下の「自作問題」で問題セットを追加すると、ここに出ます。" }));
+    box.append(fs);
+  }
+  renderChosen();
+}
+
+function renderChosen() {
+  const box = $("chosen");
+  box.replaceChildren();
+  const sel = currentSet();
+  const who = target === "common" ? "" : `${short(target)}：`;
+  if (!sel.size) { box.append(el("span", { className: "muted", textContent: who + "まだ選ばれていません。" })); return; }
+  box.append(el("span", { className: "muted", textContent: `${who}選択中 ${sel.size} 単元` }));
+  for (const k of sel) {
+    const b = el("button", { type: "button", className: "chip", title: "外す" }, label(k) || k, el("span", { className: "x", textContent: "×" }));
+    b.addEventListener("click", () => { const s = currentSet(); s.delete(k); writeSet(s); renderUnits(); });
+    box.append(b);
+  }
+  box.append(el("button", { type: "button", className: "linkbtn", textContent: "すべて外す", onclick: () => { writeSet(new Set()); renderUnits(); } }));
+}
+
+// ---------- 自作問題 ----------
+function renderSets() {
+  const box = $("sets");
+  box.replaceChildren();
+  if (!custom.length) box.append(el("p", { className: "help", textContent: "まだ問題セットがありません。" }));
+  custom.forEach((s, i) => {
+    const name = el("input", { type: "text", value: s.name, id: "setname_" + i, maxLength: 30, placeholder: "セットの名前" });
+    name.setAttribute("aria-label", "セットの名前");
+    name.addEventListener("input", () => { s.name = name.value; saveAll(); if (grade === "自作") renderUnits(); else renderChosen(); });
+    const ta = el("textarea", { value: s.text, id: "settext_" + i, spellcheck: false });
+    ta.setAttribute("aria-label", "問題（1行に1問）");
+    const cnt = el("span", { className: "help" });
+    const upd = () => { const n = ta.value.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#")).length; cnt.textContent = `${n} 問`; };
+    ta.addEventListener("input", () => { s.text = ta.value; saveAll(); upd(); });
+    upd();
+    const del = el("button", { type: "button", className: "btn sm ghost", textContent: "削除" });
+    del.addEventListener("click", () => {
+      if (del.dataset.armed) {
+        custom.splice(i, 1);
+        common.delete(s.key);
+        Object.values(perDay).forEach((d) => (d.units = d.units.filter((k) => k !== s.key)));
+        saveAll(); renderSets(); renderUnits();
+      } else { del.dataset.armed = "1"; del.textContent = "もう一度押すと削除"; }
+    });
+    box.append(el("div", { className: "set" }, el("div", { className: "set-head" }, name, cnt, del), ta));
+  });
+}
+$("addset").addEventListener("click", () => {
+  const key = "custom:" + Date.now().toString(36);
+  custom.push({ key, name: `自作問題 ${custom.length + 1}`, text: "" });
+  common.add(key);
+  saveAll(); renderSets(); grade = "自作"; renderUnits();
+  const ta = $("settext_" + (custom.length - 1)); if (ta) ta.focus();
+});
+
+// ---------- 設定・生徒 ----------
+const FIELDS = ["title", "count", "spacing", "output", "order", "seed", "student", "school", "note"];
+const CHECKS = ["shuffle", "time_box", "comment_box", "parent_box"];
+let font = "tex";
+function setFont(v) { font = v; document.querySelectorAll("#font button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === v ? "true" : "false")); }
+document.querySelectorAll("#font button").forEach((b) => b.addEventListener("click", () => { setFont(b.dataset.v); saveSettings(); }));
+function snapshot() {
+  const s = { font, units: [...common] };
+  FIELDS.forEach((f) => (s[f] = $(f).value));
+  CHECKS.forEach((f) => (s[f] = $(f).checked));
+  return s;
+}
+function apply(s) {
+  FIELDS.forEach((f) => { if (s[f] !== undefined) $(f).value = s[f]; });
+  CHECKS.forEach((f) => { if (s[f] !== undefined) $(f).checked = !!s[f]; });
+  setFont(s.font || "tex");
+  if (s.units) common = new Set(s.units.filter(label));
+}
+function saveSettings() { const s = snapshot(); delete s.units; delete s.seed; store.set("settings", s); }
+FIELDS.concat(CHECKS).forEach((f) => $(f).addEventListener("change", saveSettings));
+apply(store.get("settings", {}));
+
+let profiles = store.get("profiles", {});
+let current = store.get("current", "");
+function renderWho() {
+  for (const id of ["who", "who2"]) {
+    const s = $(id);
+    s.replaceChildren(el("option", { value: "", textContent: id === "who" ? "（指定なし）" : "保存した生徒を選ぶ…" }),
+      ...Object.keys(profiles).sort().map((n) => el("option", { value: n, textContent: n })));
+    s.value = profiles[current] ? current : "";
+  }
+  $("pdel").disabled = !profiles[current];
+}
+function choose(name) {
+  current = name; store.set("current", name);
+  if (profiles[name]) { apply(profiles[name]); perDay = {}; target = "common"; saveAll(); renderDates(); renderUnits(); }
+  renderWho();
+}
+$("who").addEventListener("change", (e) => choose(e.target.value));
+$("who2").addEventListener("change", (e) => choose(e.target.value));
+$("psave").addEventListener("click", () => {
+  const name = $("student").value.trim();
+  if (!name) { setStatus("生徒名を入れてから保存してください。", true); $("student").focus(); return; }
+  const s = snapshot(); delete s.seed;
+  profiles[name] = s; store.set("profiles", profiles);
+  current = name; store.set("current", name); renderWho();
+  setStatus(`「${name}」さんの設定を保存しました`);
+});
+$("pdel").addEventListener("click", () => {
+  const b = $("pdel");
+  if (!profiles[current]) return;
+  if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "もう一度押すと削除"; setTimeout(() => { delete b.dataset.armed; b.textContent = "削除"; }, 4000); return; }
+  delete profiles[current]; store.set("profiles", profiles);
+  delete b.dataset.armed; b.textContent = "削除";
+  current = ""; store.set("current", ""); renderWho();
+});
+
+renderSets();
+renderDates();
 renderUnits();
-renderCal();
+renderWho();
 
 // ---------- PDF ----------
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", location.href).href;
 let py = null, lastPdf = null, lastName = "", downloads = null;
 const inClaude = !!(window.claude && window.claude.use);
+const FONTS = { tex: ["ipaexm.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Italic.ttf"], gothic: ["ipag.ttf"] };
+const loadedFonts = new Set();
 
 function setStatus(text, err = false) { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); }
+
+async function ensureFonts(style) {
+  const need = FONTS[style].filter((f) => !loadedFonts.has(f));
+  await Promise.all(need.map(async (f) => {
+    const res = await fetch("fonts/" + f);
+    if (!res.ok) throw new Error("fonts/" + f + " " + res.status);
+    py.FS.writeFile("/app/worksheets/fonts/" + f, new Uint8Array(await res.arrayBuffer()));
+    loadedFonts.add(f);
+  }));
+}
 
 async function boot() {
   try {
@@ -311,16 +606,21 @@ async function boot() {
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
+    py.FS.mkdirTree("/app/worksheets/fonts");
+    await ensureFonts(font);
     py.runPython(`
-import sys, datetime as dt
+import sys, json, datetime as dt
 sys.path.insert(0, "/app")
 from worksheets.sheets import make_days
 from worksheets.pdf import build_pdf
 
-def make(units, count, seed, shuffle, title, dates, spacing, output, answers_last):
-    ds = [dt.date.fromisoformat(d) for d in dates]
-    days = make_days(list(units), int(count), int(seed), ds, shuffle=bool(shuffle))
-    return build_pdf(days, title=title, spacing=spacing, output=output, answers_last=bool(answers_last))
+def make(cfg):
+    c = json.loads(cfg)
+    ds = [dt.date.fromisoformat(d) for d in c["dates"]]
+    days = make_days(c["units"], int(c["count"]), int(c["seed"]), ds, shuffle=c["shuffle"],
+                     per_day=c["per_day"], custom=c["custom"])
+    return build_pdf(days, title=c["title"], spacing=c["spacing"], output=c["output"], answers_last=c["answers_last"],
+                     font=c["font"], **c["tutor"])
 `);
     $("make").disabled = false;
     setStatus("準備ができました");
@@ -332,31 +632,42 @@ def make(units, count, seed, shuffle, title, dates, spacing, output, answers_las
 }
 
 async function make() {
-  const units = [...selected];
-  if (!units.length) { setStatus("出題範囲を1つ以上選んでください。", true); return; }
+  const list = [...dates].sort();
+  const units = [...common];
+  const per_day = list.map((k) => (perDay[k] ? { units: perDay[k].units, count: perDay[k].count } : null));
+  const empty = list.filter((k, i) => per_day[i] && !per_day[i].units.length);
+  if (empty.length) { setStatus(`${short(empty[0])} の単元を1つ以上選んでください。`, true); target = empty[0]; renderTarget(); renderUnits(); return; }
+  if (!units.length && (list.length === 0 || per_day.some((d) => !d))) { setStatus("出題範囲を1つ以上選んでください。", true); return; }
   const count = parseInt($("count").value, 10);
   if (!(count >= 1 && count <= 100)) { setStatus("問題数は 1〜100 で入力してください。", true); return; }
   const title = $("title").value.trim() || "計算プリント";
   const seedIn = parseInt($("seed").value, 10);
   const seed = seedIn >= 1 && seedIn <= 999999 ? seedIn : 1 + Math.floor(Math.random() * 999999);
-  const list = [...dates].sort();
   const output = $("output").value;
+  const cfg = {
+    units: units.length ? units : per_day.find((d) => d).units, count, seed, shuffle: $("shuffle").checked, dates: list, per_day,
+    custom, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last", font,
+    tutor: { student: $("student").value.trim(), school: $("school").value.trim(), note: $("note").value.trim(),
+             time_box: $("time_box").checked, comment_box: $("comment_box").checked, parent_box: $("parent_box").checked },
+  };
   $("make").disabled = true;
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   try {
+    await ensureFonts(font);
     const fn = py.globals.get("make");
-    const res = fn(py.toPy(units), count, seed, $("shuffle").checked, title, py.toPy(list), $("spacing").value, output, $("order").value === "last");
+    const res = fn(JSON.stringify(cfg));
     lastPdf = res.toJs(); res.destroy(); fn.destroy();
     const suffix = { both: "", problems: "_問題", answers: "_解答" }[output];
+    const who = cfg.tutor.student ? "_" + cfg.tutor.student.replace(/\s+/g, "") : "";
     const span = list.length ? "_" + list[0].replaceAll("-", "") + (list.length > 1 ? "-" + list[list.length - 1].replaceAll("-", "") : "") : "";
-    lastName = `${title}${suffix}${span}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
+    lastName = `${title}${who}${suffix}${span}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
     await render(lastPdf);
-    setStatus(`できました（プリント番号 ${String(seed).padStart(6, "0")}）`);
+    setStatus(`できました（No.${String(seed).padStart(6, "0")}）`);
     if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
   } catch (e) {
     console.error(e);
-    setStatus("作成できませんでした: " + (e.message || e), true);
+    setStatus("作成できませんでした: " + (e.message || e).toString().split("\n").slice(-2).join(" "), true);
   } finally {
     $("make").disabled = false;
   }
@@ -372,8 +683,7 @@ async function render(bytes) {
     const page = await doc.getPage(i);
     const base = page.getViewport({ scale: 1 });
     const vp = page.getViewport({ scale: (width / base.width) * Math.min(window.devicePixelRatio || 1, 2) });
-    const cv = document.createElement("canvas");
-    cv.width = vp.width; cv.height = vp.height;
+    const cv = el("canvas", { width: vp.width, height: vp.height });
     cv.setAttribute("aria-label", `${i}ページ目`);
     await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
     frag.append(cv);
@@ -383,7 +693,7 @@ async function render(bytes) {
   $("pinfo").textContent = doc.numPages > max ? `${doc.numPages} ページ（最初の${max}ページを表示）` : `${doc.numPages} ページ`;
 }
 
-$("f").addEventListener("submit", (e) => { e.preventDefault(); if (py) make(); });
+$("make").addEventListener("click", () => { if (py) make(); });
 $("save").addEventListener("click", async () => {
   if (!lastPdf) return;
   const blob = new Blob([lastPdf], { type: "application/pdf" });
@@ -398,8 +708,7 @@ $("save").addEventListener("click", async () => {
     return;
   }
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = lastName;
+  const a = el("a", { href: url, download: lastName });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 });
