@@ -115,6 +115,19 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: no
 .empty { color: var(--sub); text-align: center; padding: 80px 16px; font-size: .86rem; }
 .note { font-size: .76rem; color: var(--sub); margin: 8px 0 0; }
 .note b { color: var(--red); font-weight: 500; }
+/* シンプル版の調整 */
+.sec { padding-block: 20px; }
+.sec h2 { margin-bottom: 12px; align-items: center; }
+.sec h2 .dsum { font-size: .85rem; font-weight: 500; color: var(--sub); margin: 0; }
+.sec h2 select { width: auto; font-size: .95rem; font-weight: 700; border-bottom: 1px solid var(--ink); padding: 2px 0; }
+.cal-head, .cal, .quick { max-width: 320px; }
+.quick { gap: 16px; }
+.quick .link { font-size: .85rem; }
+.chosen { margin-top: 14px; gap: 14px; }
+.grid .check { align-self: end; padding-bottom: 6px; }
+details.more { margin-top: 18px; }
+details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; margin-bottom: 14px; }
+.preview .pages { margin-top: 0; }
 </style>
 
 </head>
@@ -122,69 +135,59 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: no
 <div class="bar">
   <div class="bar-in">
     <h1>プリント作成</h1>
-    <span class="status" id="status" role="status">準備しています…（初回は 20MB ほど読み込みます）</span>
-    <button class="btn primary" id="make" type="button" disabled>プリントを作る</button>
-    <button class="btn" id="save" type="button" disabled hidden>PDF をダウンロード</button>
+    <span class="status" id="status" role="status">準備しています…</span>
+    <button class="btn primary" id="make" type="button" disabled>作る</button>
+    <button class="btn" id="save" type="button" disabled hidden>ダウンロード</button>
   </div>
 </div>
 
 <div class="main">
   <div class="col">
     <section class="sec" aria-labelledby="h-date">
-      <h2 id="h-date"><span class="no">1</span>日付</h2>
-      <p class="lead">選んだ日ごとに別の問題で1枚ずつ作り、1つのPDFにまとめます（最大31日）。</p>
-      <div class="datewrap">
-        <div>
-          <div class="cal-head"><button type="button" id="prev" aria-label="前の月">‹</button><span id="month"></span><button type="button" id="next" aria-label="次の月">›</button></div>
-          <div class="cal" id="cal"></div>
-          <div class="quick">
-            <button class="btn sm" type="button" data-q="today">今日</button>
-            <button class="btn sm" type="button" data-q="week">今週の月〜金</button>
-            <button class="btn sm" type="button" data-q="nextweek">来週の月〜金</button>
-            <button class="link" type="button" data-q="clear">すべて外す</button>
-          </div>
-        </div>
-        <div>
-          <div class="dsum" id="dsum"></div>
-          <div class="dlist" id="dlist"></div>
-        </div>
+      <h2 id="h-date">日付 <span class="dsum" id="dsum"></span></h2>
+      <div class="cal-head"><button type="button" id="prev" aria-label="前の月">‹</button><span id="month"></span><button type="button" id="next" aria-label="次の月">›</button></div>
+      <div class="cal" id="cal"></div>
+      <div class="quick">
+        <button class="link" type="button" data-q="today">今日</button>
+        <button class="link" type="button" data-q="week">今週の月〜金</button>
+        <button class="link" type="button" data-q="nextweek">来週の月〜金</button>
       </div>
     </section>
 
     <section class="sec" aria-labelledby="h-unit">
-      <h2 id="h-unit"><span class="no">2</span>出題範囲</h2>
-      <p class="lead">単元を選びます。複数日のときは、日付を押すとその日だけ選び直せます。</p>
+      <h2 id="h-unit">単元 <select id="grade" aria-label="学年"></select></h2>
       <div class="target" id="target"></div>
       <div class="daybar" id="daybar" hidden></div>
-      <div class="tabs" role="tablist" id="tabs"></div>
       <div class="cats" id="cats"></div>
       <div class="chosen" id="chosen"></div>
     </section>
 
     <section class="sec" aria-labelledby="h-set">
-      <h2 id="h-set"><span class="no">3</span>設定</h2>
+      <h2 id="h-set">設定</h2>
       <div class="grid">
         <div class="field wide"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
-        <div class="field"><label for="count">1日の問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
-        <div class="field"><label for="spacing">計算スペース</label>
-          <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
-        <div class="field"><label for="output">出力</label>
-          <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
-        <div class="field"><label for="order">解答の位置</label>
-          <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
-        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
+        <div class="field"><label for="count">問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
+        <label class="check"><input id="sections" type="checkbox" checked>大問構成</label>
       </div>
-      <div class="checks">
-        <label class="check"><input id="sections" type="checkbox" checked><span>大問構成にする<small>単元ごとに「1 次の計算をしなさい。」のようにまとめ、(1)(2)… の番号を大問ごとにふり直します。</small></span></label>
-        <label class="check"><input id="shuffle" type="checkbox"><span>単元をまぜて出題する<small>大問構成にしないときに使えます。</small></span></label>
-      </div>
+      <details class="more">
+        <summary>その他の設定</summary>
+        <div class="grid">
+          <div class="field"><label for="spacing">計算スペース</label>
+            <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
+          <div class="field"><label for="output">出力</label>
+            <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
+          <div class="field"><label for="order">解答の位置</label>
+            <select id="order"><option value="day" selected>日ごと</option><option value="last">最後にまとめる</option></select></div>
+          <div class="field"><label for="seed">プリント番号</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄で毎回ちがう問題"></div>
+          <label class="check"><input id="shuffle" type="checkbox">単元をまぜる</label>
+        </div>
+      </details>
     </section>
   </div>
 
   <aside class="preview" aria-label="プレビュー">
-    <div class="pv-head"><h2>プレビュー</h2><span id="pinfo"></span></div>
-    <div class="pages" id="pages"><div class="empty">準備ができると、ここに見本のプリントが表示されます。</div></div>
-    <p class="note"><b>赤字</b>は解答用紙です。左下の No. を「プリント番号」に入れると、同じ問題を作り直せます。</p>
+    <div class="pages" id="pages"><div class="empty">ここにプリントが表示されます</div></div>
+    <p class="note"><span id="pinfo"></span></p>
   </aside>
 </div>
 
@@ -241,8 +244,7 @@ function renderDates() {
   renderCal();
   const list = [...dates].sort();
   if (target !== "common" && !dates.has(target)) target = "common";
-  $("dsum").textContent = list.length ? `${list.length} 日分` : "日付なしで1枚";
-  $("dlist").replaceChildren(...list.map((k) => el("span", { className: perDay[k] ? "own" : "", textContent: short(k) + (perDay[k] ? "＊" : "") })));
+  $("dsum").textContent = list.length ? `${list.length}日分` : "日付なし";
   renderTarget();
   renderUnits();
 }
@@ -294,29 +296,20 @@ function renderTarget() {
 
 function renderTabs() {
   const sel = currentSet();
-  $("tabs").replaceChildren(...UNITS.map((g) => {
-    const b = el("button", { type: "button", className: "tab", textContent: g.grade });
-    b.setAttribute("role", "tab");
-    b.setAttribute("aria-selected", g.grade === grade ? "true" : "false");
-    const n = g.cats.flatMap((c) => c.units).filter(([k]) => sel.has(k)).length;
-    if (n) b.append(el("span", { className: "cnt", textContent: `(${n})` }));
-    b.addEventListener("click", () => { grade = g.grade; store.set("grade", grade); renderUnits(); });
-    return b;
+  const g = $("grade");
+  g.replaceChildren(...UNITS.map((x) => {
+    const n = x.cats.flatMap((c) => c.units).filter(([k]) => sel.has(k)).length;
+    return el("option", { value: x.grade, textContent: x.grade + (n ? `（${n}）` : "") });
   }));
+  g.value = grade;
 }
+$("grade").addEventListener("change", (e) => { grade = e.target.value; store.set("grade", grade); renderUnits(); });
 
 function renderUnits() {
   renderTabs();
   const sel = currentSet();
   $("cats").replaceChildren(...UNITS.find((x) => x.grade === grade).cats.map((c) => {
-    const all = el("button", { type: "button", className: "link", textContent: "すべて" });
-    all.addEventListener("click", () => {
-      const s = currentSet();
-      const on = c.units.every(([k]) => s.has(k));
-      c.units.forEach(([k]) => (on ? s.delete(k) : s.add(k)));
-      writeSet(s); renderUnits();
-    });
-    const fs = el("fieldset", {}, el("legend", {}, c.cat, all));
+    const fs = el("fieldset", {}, el("legend", {}, c.cat));
     for (const [key, name] of c.units) {
       const cb = el("input", { type: "checkbox", id: "u_" + key, checked: sel.has(key) });
       cb.addEventListener("change", () => { const s = currentSet(); cb.checked ? s.add(key) : s.delete(key); writeSet(s); renderTabs(); renderChosen(); });
@@ -328,15 +321,10 @@ function renderUnits() {
 }
 
 function renderChosen() {
-  const sel = currentSet();
+  const n = currentSet().size;
   const box = $("chosen");
-  const who = target === "common" ? "" : short(target) + "：";
-  if (!sel.size) { box.replaceChildren(el("span", { className: "lbl", textContent: who + "まだ選ばれていません" })); return; }
-  box.replaceChildren(el("span", { className: "lbl", textContent: `${who}${sel.size} 単元` }), ...[...sel].map((k) => {
-    const b = el("button", { type: "button", className: "chip", title: "外す", textContent: unitName[k] + " ×" });
-    b.addEventListener("click", () => { const s = currentSet(); s.delete(k); writeSet(s); renderUnits(); });
-    return b;
-  }), el("button", { type: "button", className: "link", textContent: "すべて外す", onclick: () => { writeSet(new Set()); renderUnits(); } }));
+  box.replaceChildren(el("span", { className: "lbl", textContent: n ? `${n}単元を選択中` : "単元を選んでください" }));
+  if (n) box.append(el("button", { type: "button", className: "link", textContent: "すべて外す", onclick: () => { writeSet(new Set()); renderUnits(); } }));
 }
 
 // ---------- 設定 ----------
@@ -375,7 +363,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-923717a868.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-d66663ab92.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -395,7 +383,7 @@ def make(cfg):
                      answers_last=c["answers_last"], sections=c["sections"])
 `);
     $("make").disabled = false;
-    setStatus("準備ができました");
+    setStatus("");
     make();
   } catch (e) {
     console.error(e);
@@ -430,7 +418,8 @@ async function make() {
     const span = list.length ? "_" + list[0].replaceAll("-", "") + (list.length > 1 ? "-" + list[list.length - 1].replaceAll("-", "") : "") : "";
     lastName = `${title}${suffix}${span}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
     await render(lastPdf);
-    setStatus(`できました（No.${String(seed).padStart(6, "0")}）`);
+    setStatus("できました");
+    $("pinfo").textContent += `　No.${String(seed).padStart(6, "0")}（同じ番号で同じ問題を作れます）`;
     if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
   } catch (e) {
     console.error(e);
