@@ -211,6 +211,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       </div>
       <div class="checks">
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする（単元ごとに「1 次の計算をしなさい。」とまとめる）</label>
+        <label class="check"><input id="terms" type="checkbox" checked>用語・基礎知識の問題を入れる（単元ごとに1問、語群から選ぶ穴うめ）</label>
         <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する（大問構成にしないとき）</label>
       </div>
       </div>
@@ -352,7 +353,7 @@ function renderChosen() {
 
 // ---------- 設定 ----------
 const FIELDS = ["title", "count", "spacing", "output", "order"];
-const CHECKS = ["sections", "shuffle"];
+const CHECKS = ["sections", "shuffle", "terms"];
 const saved = store.get("settings", {});
 FIELDS.forEach((f) => { if (saved[f] !== undefined) $(f).value = saved[f]; });
 CHECKS.forEach((f) => { if (saved[f] !== undefined) $(f).checked = !!saved[f]; });
@@ -389,7 +390,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-1cf5d0eb01.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-8d221adb08.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -404,7 +405,7 @@ from worksheets.pdf import build_pdf
 def make(cfg):
     c = json.loads(cfg)
     ds = [dt.date.fromisoformat(d) for d in c["dates"]]
-    days = make_days(c["units"], int(c["count"]), int(c["seed"]), ds, shuffle=c["shuffle"], per_day=c["per_day"])
+    days = make_days(c["units"], int(c["count"]), int(c["seed"]), ds, shuffle=c["shuffle"], per_day=c["per_day"], terms=c["terms"])
     return build_pdf(days, title=c["title"], spacing=c["spacing"], output=c["output"],
                      answers_last=c["answers_last"], sections=c["sections"])
 `);
@@ -455,7 +456,7 @@ async function make(fresh = true) {
   const output = $("output").value;
   const sections = $("sections").checked;
   const cfg = { units: common.size ? [...common] : per_day.find((d) => d).units, count, seed, dates: list, per_day,
-    shuffle: !sections && $("shuffle").checked, sections, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last" };
+    shuffle: !sections && $("shuffle").checked, sections, terms: $("terms").checked, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last" };
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   try {
