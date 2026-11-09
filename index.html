@@ -242,15 +242,16 @@ const short = (k) => { const d = new Date(k + "T00:00"); return `${d.getMonth() 
 const unitName = {};
 for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${g.grade.replace("小学", "小").replace("中学", "中")} ${n}`;
 let common = new Set(store.get("units", ["e5_frac_addsub", "w5_word", "g5_area"]).filter((k) => unitName[k]));
-let perDay = store.get("perDay", {});
-for (const k in perDay) perDay[k].units = perDay[k].units.filter((u) => unitName[u]);
+// 「この日だけの単元」はこの画面を開いている間だけ使う（前回の設定が見えないまま残らないように）
+let perDay = {};
+try { localStorage.removeItem("pp:perDay"); } catch {}
 const today = new Date(); today.setHours(0, 0, 0, 0);
 const dates = new Set([iso(today)]);
 let target = "common";
 let grade = store.get("grade", "小学5年");
 if (!UNITS.some((g) => g.grade === grade)) grade = UNITS[0].grade;
 
-const save = () => { store.set("units", [...common]); store.set("perDay", perDay); };
+const save = () => { store.set("units", [...common]); };
 const currentSet = () => (target !== "common" && perDay[target] ? new Set(perDay[target].units) : common);
 function writeSet(s) { if (target !== "common" && perDay[target]) perDay[target].units = [...s]; else common = s; save(); schedule(); }
 
@@ -276,6 +277,8 @@ function renderCal() {
 function renderDates() {
   renderCal();
   const list = [...dates].sort();
+  // 選ばれていない日や、1日だけのときは「この日だけの単元」を消す（画面に見えない設定を残さない）
+  for (const k of Object.keys(perDay)) if (!dates.has(k) || dates.size < 2) delete perDay[k];
   if (target !== "common" && !dates.has(target)) target = "common";
   $("dsum").textContent = list.length ? `${list.length}日分` : "日付なし";
   renderTarget();
@@ -300,6 +303,14 @@ function renderTarget() {
   mk("common", "すべての日");
   list.forEach((k) => mk(k, short(k)));
   const bar = $("daybar");
+  const own = list.filter((k) => perDay[k]);
+  if (target === "common" && !box.hidden && own.length) {
+    // 「すべての日」を編集中でも、別の単元を使う日があることを見えるようにする
+    bar.hidden = false;
+    bar.replaceChildren(el("span", { className: "grow", textContent: `${own.map(short).join("、")} は、その日だけの単元で作ります。` }),
+      el("button", { className: "link", type: "button", textContent: "すべての日を同じ単元にする", onclick: () => { own.forEach((k) => delete perDay[k]); renderDates(); schedule(); } }));
+    return;
+  }
   bar.hidden = target === "common" || box.hidden;
   if (bar.hidden) return;
   if (!perDay[target]) {
@@ -442,7 +453,7 @@ async function run(fresh) {
 async function make(fresh = true) {
   const done = () => $("pages").classList.remove("stale");
   const list = [...dates].sort();
-  const per_day = list.map((k) => (perDay[k] ? { units: perDay[k].units, count: perDay[k].count } : null));
+  const per_day = list.map((k) => (list.length > 1 && perDay[k] ? { units: [...perDay[k].units], count: perDay[k].count } : null));
   const empty = list.find((k, i) => per_day[i] && !per_day[i].units.length);
   if (empty) { done(); setStatus(`${short(empty)} の単元を選んでください。`, true); return; }
   const needCommon = !list.length || per_day.some((d) => !d);
