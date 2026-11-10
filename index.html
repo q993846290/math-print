@@ -160,6 +160,13 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .check:has(input:disabled) { opacity: .5; cursor: default; }
 .daybar input[type="number"] { padding: 4px 8px; }
 
+/* 用語の問題数 */
+.termrow { flex-wrap: wrap; align-items: center; gap: 8px 16px; cursor: default; }
+.termlbl { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; flex: 1 1 18em; }
+.termlbl input { margin-top: 4px; accent-color: var(--ink); }
+.termn { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; white-space: nowrap; }
+.termn input[type="number"] { width: 4.6em; padding: 5px 8px; text-align: right; }
+.termn:has(input:disabled) { opacity: .45; }
 /* プレビュー：作り直し中はうすく */
 .pages canvas { transition: opacity .15s; }
 .pages.stale canvas { opacity: .4; }
@@ -211,7 +218,10 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       </div>
       <div class="checks">
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする（単元ごとに「1 次の計算をしなさい。」とまとめる）</label>
-        <label class="check"><input id="terms" type="checkbox" checked>用語・基礎知識の問題を入れる（単元ごとに1問、語群から選ぶ穴うめ）</label>
+        <div class="check termrow">
+          <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語・基礎知識の問題を入れる（語群から選ぶ穴うめ）</label>
+          <span class="termn">1日の問題数のうち <input id="termsN" type="number" min="1" max="100" value="2" aria-label="用語・基礎知識の問題数"> 問</span>
+        </div>
         <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する（大問構成にしないとき）</label>
       </div>
       </div>
@@ -363,12 +373,12 @@ function renderChosen() {
 }
 
 // ---------- 設定 ----------
-const FIELDS = ["title", "count", "spacing", "output", "order"];
+const FIELDS = ["title", "count", "spacing", "output", "order", "termsN"];
 const CHECKS = ["sections", "shuffle", "terms"];
 const saved = store.get("settings", {});
 FIELDS.forEach((f) => { if (saved[f] !== undefined) $(f).value = saved[f]; });
 CHECKS.forEach((f) => { if (saved[f] !== undefined) $(f).checked = !!saved[f]; });
-function syncShuffle() { $("shuffle").disabled = $("sections").checked; }
+function syncShuffle() { $("shuffle").disabled = $("sections").checked; $("termsN").disabled = !$("terms").checked; }
 syncShuffle();
 function onSetting() {
   const s = {};
@@ -379,7 +389,7 @@ function onSetting() {
   schedule();
 }
 FIELDS.concat(CHECKS).forEach((f) => $(f).addEventListener("change", onSetting));
-["title", "count", "seed"].forEach((f) => $(f).addEventListener("input", onSetting));
+["title", "count", "seed", "termsN"].forEach((f) => $(f).addEventListener("input", onSetting));
 
 renderDates();
 
@@ -401,7 +411,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-6838560be5.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-167ffb463b.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -460,6 +470,8 @@ async function make(fresh = true) {
   if (needCommon && !common.size) { done(); setStatus("単元を1つ以上選んでください。", true); return; }
   const count = parseInt($("count").value, 10);
   if (!(count >= 1 && count <= 100)) { done(); setStatus("問題数は 1〜100 で入力してください。", true); return; }
+  const termsN = parseInt($("termsN").value, 10);
+  if ($("terms").checked && !(termsN >= 1 && termsN <= 100)) { done(); setStatus("用語の問題数は 1〜100 で入力してください。", true); return; }
   const title = $("title").value.trim() || "計算プリント";
   const seedIn = parseInt($("seed").value, 10);
   const seed = seedIn >= 1 && seedIn <= 999999 ? seedIn : (fresh || curSeed === null ? 1 + Math.floor(Math.random() * 999999) : curSeed);
@@ -467,7 +479,7 @@ async function make(fresh = true) {
   const output = $("output").value;
   const sections = $("sections").checked;
   const cfg = { units: common.size ? [...common] : per_day.find((d) => d).units, count, seed, dates: list, per_day,
-    shuffle: !sections && $("shuffle").checked, sections, terms: $("terms").checked, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last" };
+    shuffle: !sections && $("shuffle").checked, sections, terms: $("terms").checked ? termsN : 0, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last" };
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   try {
