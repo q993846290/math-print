@@ -224,7 +224,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする（単元ごとに「1 次の計算をしなさい。」とまとめる）</label>
         <label class="check"><input id="guide" type="checkbox">単元のポイント（概要説明）をプリントの冒頭に入れる</label>
         <div class="check termrow">
-          <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語・基礎知識の問題を入れる（語群から選ぶ穴うめ）</label>
+          <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語・基礎知識の問題を入れる（ことばを選ぶ穴うめ）</label>
           <span class="termn">1日の問題数のうち <input id="termsN" type="number" min="1" max="100" value="2" aria-label="用語・基礎知識の問題数"> 問</span>
         </div>
         <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する（大問構成にしないとき）</label>
@@ -416,7 +416,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-f8821ad789.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-20741b3d9c.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
