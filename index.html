@@ -164,12 +164,15 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .check:has(input:disabled) { opacity: .5; cursor: default; }
 .daybar input[type="number"] { padding: 4px 8px; }
 
+/* 4つのボタンは同じ縦幅にそろえる */
+.checks .check { box-sizing: border-box; height: 52px; padding: 0 12px; align-items: center; }
+.checks .check > input, .termlbl input { margin-top: 0; }
 /* 用語の問題数 */
-.termrow { flex-wrap: wrap; align-items: center; gap: 8px 16px; cursor: default; }
-.termlbl { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; flex: 1 1 18em; }
-.termlbl input { margin-top: 4px; accent-color: var(--ink); }
+.termrow { flex-wrap: nowrap; align-items: center; gap: 12px; cursor: default; }
+.termlbl { display: flex; gap: 8px; align-items: center; cursor: pointer; flex: 1 1 auto; min-width: 0; height: 100%; }
+.termlbl input { accent-color: var(--ink); }
 .termn { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; white-space: nowrap; }
-.termn input[type="number"] { width: 4.6em; padding: 5px 8px; text-align: right; }
+.termn input[type="number"] { width: 4.6em; padding: 4px 8px; text-align: right; }
 .termn:has(input:disabled) { opacity: .45; }
 /* プレビュー：作り直し中はうすく */
 .pages canvas { transition: opacity .15s; }
@@ -212,8 +215,6 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       <div class="grid">
         <div class="field wide"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
         <div class="field"><label for="count">1日の問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
-        <div class="field"><label for="spacing">計算スペース</label>
-          <select id="spacing"><option value="narrow">せまい</option><option value="normal" selected>ふつう</option><option value="wide">ひろい</option></select></div>
         <div class="field"><label for="output">出力</label>
           <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
         <div class="field"><label for="order">解答の位置</label>
@@ -225,9 +226,9 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
         <label class="check"><input id="guide" type="checkbox">単元の説明を入れる</label>
         <div class="check termrow">
           <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語の問題を入れる</label>
-          <span class="termn">1日の問題数のうち <input id="termsN" type="number" min="1" max="100" value="2" aria-label="用語・基礎知識の問題数"> 問</span>
+          <span class="termn"><input id="termsN" type="number" min="1" max="100" value="2" aria-label="1日の問題数のうち、用語の問題の数"> 問</span>
         </div>
-        <label class="check"><input id="shuffle" type="checkbox">単元をまぜて出題する（大問構成にしないとき）</label>
+        <label class="check" title="大問構成にしないときに使えます"><input id="shuffle" type="checkbox">単元を混ぜて出題する</label>
       </div>
       </div>
     </section>
@@ -378,7 +379,7 @@ function renderChosen() {
 }
 
 // ---------- 設定 ----------
-const FIELDS = ["title", "count", "spacing", "output", "order", "termsN"];
+const FIELDS = ["title", "count", "output", "order", "termsN"];
 const CHECKS = ["sections", "shuffle", "terms", "guide"];
 const saved = store.get("settings", {});
 FIELDS.forEach((f) => { if (saved[f] !== undefined) $(f).value = saved[f]; });
@@ -416,7 +417,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-dfbbaa6061.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-5bc0bbb4f7.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -484,7 +485,7 @@ async function make(fresh = true) {
   const output = $("output").value;
   const sections = $("sections").checked;
   const cfg = { units: common.size ? [...common] : per_day.find((d) => d).units, count, seed, dates: list, per_day,
-    shuffle: !sections && $("shuffle").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: $("spacing").value, output, answers_last: $("order").value === "last" };
+    shuffle: !sections && $("shuffle").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: "normal", output, answers_last: $("order").value === "last" };
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   try {
