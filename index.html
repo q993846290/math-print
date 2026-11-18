@@ -223,13 +223,12 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       </div>
       <div class="checks">
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする</label>
-        <label class="check" title="選んだ単元を習う順に、単元の中の問題も習う順に並べます"><input id="ordered" type="checkbox">単元順に並べる</label>
+        <label class="check" title="選んだ単元を学習する順に、単元の中の問題も学習する順に並べます"><input id="ordered" type="checkbox">学習順に並べる</label>
         <label class="check"><input id="guide" type="checkbox">単元の説明を入れる</label>
         <div class="check termrow">
           <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語の問題を入れる</label>
           <span class="termn"><input id="termsN" type="number" min="1" max="100" value="2" aria-label="1日の問題数のうち、用語の問題の数"> 問</span>
         </div>
-        <label class="check" title="大問構成・単元順にしないときに使えます"><input id="shuffle" type="checkbox">単元を混ぜて出題する</label>
       </div>
       </div>
     </section>
@@ -381,11 +380,11 @@ function renderChosen() {
 
 // ---------- 設定 ----------
 const FIELDS = ["title", "count", "output", "order", "termsN"];
-const CHECKS = ["sections", "ordered", "shuffle", "terms", "guide"];
+const CHECKS = ["sections", "ordered", "terms", "guide"];
 const saved = store.get("settings", {});
 FIELDS.forEach((f) => { if (saved[f] !== undefined) $(f).value = saved[f]; });
 CHECKS.forEach((f) => { if (saved[f] !== undefined) $(f).checked = !!saved[f]; });
-function syncShuffle() { $("shuffle").disabled = $("sections").checked || $("ordered").checked; $("termsN").disabled = !$("terms").checked; }
+function syncShuffle() { $("termsN").disabled = !$("terms").checked; }
 syncShuffle();
 function onSetting() {
   const s = {};
@@ -418,7 +417,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-d62f5a92b9.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-1e8433c136.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -486,7 +485,7 @@ async function make(fresh = true) {
   const output = $("output").value;
   const sections = $("sections").checked;
   const cfg = { units: common.size ? [...common] : per_day.find((d) => d).units, count, seed, dates: list, per_day,
-    shuffle: !sections && !$("ordered").checked && $("shuffle").checked, ordered: $("ordered").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: "normal", output, answers_last: $("order").value === "last" };
+    shuffle: false, ordered: $("ordered").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: "normal", output, answers_last: $("order").value === "last" };
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   try {
