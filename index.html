@@ -401,7 +401,7 @@ renderDates();
 
 // ---------- PDF ----------
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", location.href).href;
-let py = null, lastPdf = null, lastName = "", downloads = null;
+let py = null, lastPdf = null, lastName = "", downloads = null, gothicLoaded = false;
 const inClaude = !!(window.claude && window.claude.use);
 const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Italic.ttf", "KaTeX_Size4-Regular.ttf"];
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
@@ -417,7 +417,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-32fa7e9d87.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-e8360d6b3e.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
@@ -488,6 +488,12 @@ async function make(fresh = true) {
     shuffle: false, ordered: $("ordered").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: "normal", output, answers_last: $("order").value === "last" };
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
+  if (cfg.guide && !gothicLoaded) {  // 説明の重要語句に使うゴシック体は、説明を入れるときだけ読み込む
+    try {
+      const res = await fetch("fonts/ipag.ttf");
+      if (res.ok) { py.FS.writeFile("/app/worksheets/fonts/ipag.ttf", new Uint8Array(await res.arrayBuffer())); gothicLoaded = true; }
+    } catch (e) { console.warn(e); }
+  }
   try {
     const fn = py.globals.get("make");
     const res = fn(JSON.stringify(cfg));

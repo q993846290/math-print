@@ -11,12 +11,12 @@
 - 大問構成（単元ごとに「1 次の計算をしなさい。」のようにまとめる）。1問だけの大問は (1) をつけない
 - 用語・基礎知識の問題（語群から選ぶ穴うめ）を、1日の問題数のうち何問入れるか決められる
 - 単元のポイント（概要説明）をプリントの冒頭に入れられる
-- 書体は、日本語が教科書体風（Klee One）、数字・数式が TeX 風（KaTeX の書体）
+- 書体は、日本語が教科書体風（Klee One）、数字・数式が TeX 風（KaTeX の書体）、単元の説明の重要語句・公式がゴシック体（IPAゴシック）
 
 ## ファイル
 
 - `index.html` 画面
 - `py/bundle-*.b64.txt` 問題を作るプログラム（worksheets）と reportlab を zip にして base64 にしたもの
-- `fonts/` Klee One（教科書体風、SIL Open Font License 1.1）、KaTeX フォント（MIT ライセンス）
+- `fonts/` Klee One（教科書体風、SIL Open Font License 1.1）、KaTeX フォント（MIT ライセンス）、IPAゴシック（IPA フォントライセンス v1.0、ipag.ttf は改変せずに配布）
 - `pyodide/` ブラウザで Python を動かすための Pyodide 0.26.4
 - `pdf.min.js` / `pdf.worker.min.js` プレビュー表示用の PDF.js 3.11.174
