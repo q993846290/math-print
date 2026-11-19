@@ -422,7 +422,23 @@ const inClaude = !!(window.claude && window.claude.use);
 const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Italic.ttf", "KaTeX_Size4-Regular.ttf"];
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
+const BUNDLE = "bundle-beecbe05da.b64.txt";
+// ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
+async function newerPage() {
+  try {
+    const res = await fetch(location.pathname + "?check=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return false;
+    const m = (await res.text()).match(/const BUNDLE = "(bundle-[0-9a-f]+\.b64\.txt)"/);
+    if (m && m[1] !== BUNDLE && !location.search.includes(m[1])) {
+      location.replace(location.pathname + "?v=" + m[1]);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
 async function boot() {
+  if (await newerPage()) return;
   try {
     const b64 = async (url) => {
       const res = await fetch(url, { cache: "no-cache" });
@@ -433,7 +449,7 @@ async function boot() {
       return out;
     };
     const bin = async (url) => { const res = await fetch(url, { cache: "no-cache" }); if (!res.ok) throw new Error(url + " " + res.status); return new Uint8Array(await res.arrayBuffer()); };
-    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/bundle-9205d08c7a.b64.txt"), ...FONTS.map((f) => bin("fonts/" + f))]);
+    const [stdlib, buf, ...fonts] = await Promise.all([b64("pyodide/python_stdlib.b64.txt"), b64("py/" + BUNDLE), ...FONTS.map((f) => bin("fonts/" + f))]);
     const stdLibURL = URL.createObjectURL(new Blob([stdlib], { type: "application/zip" }));
     py = await loadPyodide({ indexURL: new URL("pyodide/", location.href).href, stdLibURL });
     py.unpackArchive(buf, "zip", { extractDir: "/app" });
