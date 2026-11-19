@@ -214,12 +214,12 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
       <div class="setbox">
       <div class="grid">
         <div class="field wide"><label for="title">課題名</label><input id="title" type="text" maxlength="40" value="計算プリント"></div>
-        <div class="field"><label for="count">1日の問題数</label><input id="count" type="number" min="1" max="100" value="12"></div>
+        <div class="field"><label for="count">1日の問題数</label><input id="count" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="100" value="12"></div>
         <div class="field"><label for="output">出力</label>
           <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
         <div class="field"><label for="order">解答の位置</label>
           <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
-        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
+        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
       </div>
       <div class="checks">
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする</label>
@@ -227,7 +227,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
         <label class="check"><input id="guide" type="checkbox">単元の説明を入れる</label>
         <div class="check termrow">
           <label class="termlbl" for="terms"><input id="terms" type="checkbox" checked>用語の問題を入れる</label>
-          <span class="termn"><input id="termsN" type="number" min="1" max="100" value="2" aria-label="1日の問題数のうち、用語の問題の数"> 問</span>
+          <span class="termn"><input id="termsN" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="100" value="2" aria-label="1日の問題数のうち、用語の問題の数"> 問</span>
         </div>
       </div>
       </div>
