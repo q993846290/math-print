@@ -177,6 +177,15 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 /* プレビュー：作り直し中はうすく */
 .pages canvas { transition: opacity .15s; }
 .pages.stale canvas { opacity: .4; }
+/* iPad 用の数字パッド（iPad には数字だけのキーボードがないため） */
+.numpad { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--bg); border-top: 1.5px solid var(--ink); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.numpad .np-keys { display: grid; grid-template-columns: repeat(3, 1fr) 1.4fr; gap: 8px; max-width: 560px; margin: 0 auto; }
+.numpad[hidden] { display: none; }
+.numpad button { -webkit-tap-highlight-color: transparent; color: var(--ink); height: 52px; border: 1.5px solid var(--rule); border-radius: 6px; background: var(--bg); font-size: 1.35rem; font-weight: 700; cursor: pointer; }
+.numpad button:active { background: var(--soft); border-color: var(--ink); }
+.numpad .np-done { grid-column: 4; grid-row: 3 / span 2; background: var(--ink); color: var(--bg) !important; border-color: var(--ink); font-size: 1.05rem; }
+.numpad .np-del { grid-column: 4; grid-row: 1 / span 2; font-size: 1.1rem; }
+.numpad .np-zero { grid-column: 1 / span 3; }
 </style>
 
 </head>
@@ -239,6 +248,13 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
     <p class="note"><span id="pinfo"></span></p>
   </aside>
 </div>
+
+<div class="numpad" id="numpad" hidden aria-label="数字の入力"><div class="np-keys">
+  <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" class="np-del" data-k="del" aria-label="1文字消す">⌫</button>
+  <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+  <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" class="np-done" data-k="done">完了</button>
+  <button type="button" class="np-zero" data-k="0">0</button>
+</div></div>
 
 <script src="pyodide/pyodide.js"></script>
 <script src="pdf.min.js"></script>
@@ -564,6 +580,41 @@ if (inClaude) {
     if (downloads && lastPdf) { $("save").hidden = false; $("save").disabled = false; }
   })();
 }
+
+// iPad には数字だけのキーボードがないので、数字の欄ではページの中の数字パッドを出す
+(function numpad() {
+  const ua = navigator.userAgent;
+  const isIPad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (!isIPad) return;
+  const pad = $("numpad");
+  let cur = null, fresh = false;
+  const inputs = Array.from(document.querySelectorAll('input[inputmode="numeric"]'));
+  inputs.forEach((el) => {
+    el.setAttribute("inputmode", "none");  // ふつうのキーボードは出さない（外付けキーボードはそのまま使える）
+    el.addEventListener("focus", () => { cur = el; fresh = true; pad.hidden = false; document.body.style.paddingBottom = pad.offsetHeight + 12 + "px"; setTimeout(() => {  // 入力欄が数字パッドに隠れないように、ページを上にずらす
+      const r = el.getBoundingClientRect(), limit = window.innerHeight - pad.offsetHeight - 24;
+      if (r.bottom > limit) window.scrollBy({ top: r.bottom - limit, behavior: "smooth" });
+      else if (r.top < 8) window.scrollBy({ top: r.top - 24, behavior: "smooth" });
+    }, 30); });
+    el.addEventListener("blur", () => { setTimeout(() => { if (document.activeElement !== cur) { pad.hidden = true; document.body.style.paddingBottom = ""; cur = null; } }, 0); });
+  });
+  pad.addEventListener("pointerdown", (e) => e.preventDefault());  // パッドを押しても入力欄からフォーカスを外さない
+  pad.addEventListener("mousedown", (e) => e.preventDefault());
+  pad.addEventListener("click", (e) => {
+    const k = e.target.closest("button")?.dataset.k;
+    if (!k || !cur) return;
+    if (k === "done") { cur.blur(); return; }
+    const maxLen = String(cur.max || "999999").length;
+    let v = cur.value;
+    if (k === "del") v = fresh ? "" : v.slice(0, -1);
+    else v = (fresh ? "" : v) + k;
+    v = v.replace(/^0+(?=\d)/, "").slice(0, maxLen);
+    fresh = false;
+    cur.value = v;
+    cur.dispatchEvent(new Event("input", { bubbles: true }));
+    cur.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+})();
 boot();
 </script>
 
