@@ -423,13 +423,14 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-beecbe05da.b64.txt";
+const PAGE_V = "e5100782a8";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
     const res = await fetch(location.pathname + "?check=" + Date.now(), { cache: "no-store" });
     if (!res.ok) return false;
-    const m = (await res.text()).match(/const BUNDLE = "(bundle-[0-9a-f]+\.b64\.txt)"/);
-    if (m && m[1] !== BUNDLE && !location.search.includes(m[1])) {
+    const m = (await res.text()).match(/const PAGE_V = "([0-9a-f]{10})"/);
+    if (m && m[1] !== PAGE_V && !location.search.includes(m[1])) {
       location.replace(location.pathname + "?v=" + m[1]);
       return true;
     }
