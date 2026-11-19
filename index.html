@@ -376,11 +376,11 @@ function renderUnits() {
   renderTabs();
   const sel = currentSet();
   $("cats").replaceChildren(...UNITS.find((x) => x.grade === grade).cats.map((c) => {
-    const fs = el("fieldset", { className: "seq" }, el("legend", {}, c.cat));
+    const fs = el("fieldset", { className: "seq", ariaLabel: "単元" });
     c.units.forEach(([key, name], i) => {
       const cb = el("input", { type: "checkbox", id: "u_" + key, checked: sel.has(key) });
       cb.addEventListener("change", () => { const s = currentSet(); cb.checked ? s.add(key) : s.delete(key); writeSet(s); renderTabs(); renderChosen(); });
-      fs.append(el("label", { className: "unit" }, el("span", { className: "no", textContent: i + 1 }), cb, el("span", { textContent: name })));
+      fs.append(el("label", { className: "unit" }, cb, el("span", { textContent: name })));
     });
     return fs;
   }));
