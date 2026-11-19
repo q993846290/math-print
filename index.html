@@ -453,10 +453,19 @@ def make(cfg):
                      answers_last=c["answers_last"], sections=c["sections"], guide=c.get("guide", False))
 `);
     $("make").disabled = false;
+    try { sessionStorage.removeItem("mp-reload"); } catch {}
     setStatus("");
     run(true);
   } catch (e) {
     console.error(e);
+    // 古いページがブラウザに残っていて、新しいファイルが見つからないときは、1回だけ最新のページを読み直す
+    let retried = false;
+    try { retried = sessionStorage.getItem("mp-reload") === "1"; } catch {}
+    if (/ 404$/.test(String(e.message || "")) && !retried) {
+      try { sessionStorage.setItem("mp-reload", "1"); } catch {}
+      location.replace(location.pathname + "?v=" + Date.now());
+      return;
+    }
     setStatus("起動できませんでした。ページを再読み込みしてください。（" + String(e.message || e).trim().split("\n").pop().slice(0, 120) + "）", true);
   }
 }
