@@ -36,9 +36,10 @@ button, input, select { font: inherit; color: inherit; }
 .btn.primary { background: var(--ink); color: var(--bg); }
 .btn:disabled { opacity: .35; cursor: default; }
 .btn.sm { padding: 3px 10px; font-size: .8rem; border-color: var(--rule); }
-.btn.sm:hover { border-color: var(--ink); }
+/* マウスを重ねたときの色は、マウスで操作するときだけ（タッチでは、さわったあとに色が残らないように） */
+@media (hover: hover) { .btn.sm:hover { border-color: var(--ink); } }
 .link { border: 0; background: none; padding: 0; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: .8rem; }
-.link:hover { color: var(--ink); }
+@media (hover: hover) { .link:hover { color: var(--ink); } }
 
 .main { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px;
   padding-block: 8px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -55,11 +56,11 @@ button, input, select { font: inherit; color: inherit; }
 @media (max-width: 600px) { .datewrap { grid-template-columns: minmax(0, 1fr); } }
 .cal-head { display: flex; align-items: center; justify-content: space-between; font-weight: 500; margin-bottom: 4px; }
 .cal-head button { border: 0; background: none; width: 30px; height: 30px; cursor: pointer; color: var(--sub); font-size: 1.1rem; border-radius: 50%; }
-.cal-head button:hover { background: var(--soft); color: var(--ink); }
+@media (hover: hover) { .cal-head button:hover { background: var(--soft); color: var(--ink); } }
 .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; font-variant-numeric: tabular-nums; }
 .cal .dow { font-size: .7rem; color: var(--faint); }
 .cal button { aspect-ratio: 1; max-width: 100%; border: 0; background: none; border-radius: 50%; cursor: pointer; font-size: .86rem; }
-.cal button:hover { background: var(--soft); }
+@media (hover: hover) { .cal button:hover { background: var(--soft); } }
 .cal .hol { color: var(--faint); }
 .cal button.today { text-decoration: underline; text-underline-offset: 3px; }
 .cal button.on { background: var(--ink); color: var(--bg); }
@@ -78,7 +79,7 @@ button, input, select { font: inherit; color: inherit; }
 .daybar input[type="number"] { width: 4.5em; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .tab { border: 1.5px solid var(--rule); background: var(--bg); border-radius: 4px; padding: 5px 12px; cursor: pointer; color: var(--ink); font-size: .88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
-.tab:hover { border-color: var(--ink); }
+@media (hover: hover) { .tab:hover { border-color: var(--ink); } }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .tab .cnt { font-size: .7rem; min-width: 1.5em; padding: 0 4px; border-radius: 999px; background: var(--red); color: #fff; text-align: center; font-variant-numeric: tabular-nums; }
 .cats { display: block; }
@@ -94,7 +95,7 @@ legend .link { font-size: .72rem; letter-spacing: 0; }
 .chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 18px; font-size: .8rem; }
 .chosen .lbl { color: var(--sub); margin-right: 4px; }
 .chip { border: 1px solid var(--rule); background: var(--bg); border-radius: 4px; padding: 1px 8px; cursor: pointer; font-size: .78rem; }
-.chip:hover { border-color: var(--red); color: var(--red); }
+@media (hover: hover) { .chip:hover { border-color: var(--red); color: var(--red); } }
 
 /* 設定 */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 16px 20px; }
@@ -102,7 +103,7 @@ legend .link { font-size: .72rem; letter-spacing: 0; }
 .field.wide { grid-column: 1 / -1; }
 .field label { font-size: .78rem; font-weight: 700; color: var(--sub); }
 input[type="text"], input[type="number"], select { width: 100%; border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--bg); font-weight: 700; transition: border-color .15s, box-shadow .15s; }
-input[type="text"]:hover, input[type="number"]:hover, select:hover { border-color: var(--sub); }
+@media (hover: hover) { input[type="text"]:hover, input[type="number"]:hover, select:hover { border-color: var(--sub); } }
 input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--ring); }
 input::placeholder { color: var(--faint); font-weight: 500; }
 select { appearance: none; -webkit-appearance: none; padding-right: 34px; cursor: pointer;
@@ -142,7 +143,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .cal-wrap { max-width: 360px; border: 1.5px solid var(--ink); border-radius: 10px; padding: 10px 12px 12px; }
 .cal-head { max-width: none; font-weight: 900; font-size: 1.05rem; margin-bottom: 6px; }
 .cal-head button { width: 34px; height: 34px; border: 1.5px solid var(--rule); border-radius: 8px; color: var(--ink); font-weight: 900; }
-.cal-head button:hover { border-color: var(--ink); background: var(--bg); }
+@media (hover: hover) { .cal-head button:hover { border-color: var(--ink); background: var(--bg); } }
 .cal { max-width: none; gap: 4px; }
 .cal .dow { font-size: .78rem; font-weight: 900; color: var(--ink); padding: 4px 0 6px; border-bottom: 1.5px solid var(--rule); margin-bottom: 4px; }
 .cal .sun { color: var(--red); }
@@ -150,7 +151,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .cal button { font-size: 1rem; font-weight: 700; color: var(--ink); border-radius: 8px; border: 1.5px solid transparent; }
 .cal button.sun { color: var(--red); }
 .cal button.sat { color: var(--sat); }
-.cal button:hover { border-color: var(--ink); background: var(--bg); }
+@media (hover: hover) { .cal button:hover { border-color: var(--ink); background: var(--bg); } }
 .cal button.today { text-decoration: none; border-color: var(--ink); }
 .cal button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
@@ -159,7 +160,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .field label { font-size: .8rem; font-weight: 900; color: var(--ink); }
 .checks { margin-top: 16px; gap: 8px; }
 .check { border: 1.5px solid var(--rule); border-radius: 8px; padding: 10px 12px; font-weight: 700; }
-.check:hover { border-color: var(--sub); }
+@media (hover: hover) { .check:hover { border-color: var(--sub); } }
 .check:has(input:checked) { border-color: var(--ink); }
 .check:has(input:disabled) { opacity: .5; cursor: default; }
 .daybar input[type="number"] { padding: 4px 8px; }
