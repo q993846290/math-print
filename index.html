@@ -271,8 +271,10 @@ const pad = (n) => String(n).padStart(2, "0");
 const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const short = (k) => { const d = new Date(k + "T00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`; };
 
+// 学年は「小学1年」のままデータ・保存に使い、画面には「小1」「中1」と短く出す
+const gradeShort = (g) => g.replace(/^小学(\d)年$/, "小$1").replace(/^中学(\d)年$/, "中$1");
 const unitName = {};
-for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${g.grade.replace("小学", "小").replace("中学", "中")} ${n}`;
+for (const g of UNITS) for (const c of g.cats) for (const [k, n] of c.units) unitName[k] = `${gradeShort(g.grade)} ${n}`;
 let common = new Set(store.get("units", ["e5_frac_addsub", "w5_word", "g5_area"]).filter((k) => unitName[k]));
 // 「この日だけの単元」はこの画面を開いている間だけ使う（前回の設定が見えないまま残らないように）
 let perDay = {};
@@ -362,7 +364,7 @@ function renderTarget() {
 function renderTabs() {
   const sel = currentSet();
   $("tabs").replaceChildren(...UNITS.map((g) => {
-    const b = el("button", { type: "button", className: "tab", textContent: g.grade });
+    const b = el("button", { type: "button", className: "tab", textContent: gradeShort(g.grade) });
     b.setAttribute("role", "tab");
     b.setAttribute("aria-selected", g.grade === grade ? "true" : "false");
     const n = g.cats.flatMap((c) => c.units).filter(([k]) => sel.has(k)).length;
