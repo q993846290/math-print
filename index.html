@@ -162,7 +162,8 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .check { border: 1.5px solid var(--rule); border-radius: 8px; padding: 10px 12px; font-weight: 700; }
 @media (hover: hover) { .check:hover { border-color: var(--sub); } }
 .check:has(input:checked) { border-color: var(--ink); }
-.check:has(input:disabled) { opacity: .5; cursor: default; }
+/* 行全体をうすくするのは、チェックボックスそのものが使えないときだけ（用語の問題の「問題数」の欄が使えないだけのときは、その欄だけうすく） */
+.check:has(input[type="checkbox"]:disabled) { opacity: .5; cursor: default; }
 .daybar input[type="number"] { padding: 4px 8px; }
 
 /* 4つのボタンは同じ縦幅にそろえる */
