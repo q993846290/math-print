@@ -92,8 +92,13 @@ legend { display: flex; justify-content: space-between; align-items: baseline; w
 legend .link { font-size: .72rem; letter-spacing: 0; }
 .unit { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .92rem; line-height: 1.5; }
 .unit input { margin-top: 3px; accent-color: var(--ink); }
-.chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 18px; font-size: .8rem; }
-.chosen .lbl { color: var(--sub); margin-right: 4px; }
+/* 選んだ単元の数：上に細い線、数を大きな太字で。「すべて外す」は右はしの枠つきボタン */
+.chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .82rem; }
+.chosen .lbl { display: flex; align-items: baseline; gap: 6px; color: var(--sub); }
+.chosen .lbl b { font-size: 1.7rem; line-height: 1; font-weight: 900; color: var(--ink); }
+.chosen .lbl.zero b { color: var(--faint); }
+.chosen .clear { border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 5px 14px; font-size: .8rem; font-weight: 700; cursor: pointer; }
+@media (hover: hover) { .chosen .clear:hover { background: var(--soft); } }
 .chip { border: 1px solid var(--rule); background: var(--bg); border-radius: 4px; padding: 1px 8px; cursor: pointer; font-size: .78rem; }
 @media (hover: hover) { .chip:hover { border-color: var(--red); color: var(--red); } }
 
@@ -394,8 +399,9 @@ function renderUnits() {
 function renderChosen() {
   const n = currentSet().size;
   const box = $("chosen");
-  box.replaceChildren(el("span", { className: "lbl", textContent: n ? `${n}単元を選択中` : "単元を選んでください" }));
-  if (n) box.append(el("button", { type: "button", className: "link", textContent: "すべて外す", onclick: () => { writeSet(new Set()); renderUnits(); } }));
+  box.replaceChildren(el("span", { className: n ? "lbl" : "lbl zero" },
+    el("b", { textContent: String(n) }), document.createTextNode(n ? "単元を選択中" : "単元　上の一覧から選んでください")));
+  if (n) box.append(el("button", { type: "button", className: "clear", textContent: "すべて外す", onclick: () => { writeSet(new Set()); renderUnits(); } }));
 }
 
 // ---------- 設定 ----------
