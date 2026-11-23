@@ -97,6 +97,8 @@ legend .link { font-size: .72rem; letter-spacing: 0; }
 .chosen .lbl { display: flex; align-items: baseline; gap: 6px; color: var(--sub); }
 .chosen .lbl b { font-size: 1.7rem; line-height: 1; font-weight: 900; color: var(--ink); }
 .chosen .lbl.zero b { color: var(--faint); }
+#seed.bad { border-color: var(--red); }
+#seed { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .chosen .clear { border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 5px 14px; font-size: .8rem; font-weight: 700; cursor: pointer; }
 @media (hover: hover) { .chosen .clear:hover { background: var(--soft); } }
 .chip { border: 1px solid var(--rule); background: var(--bg); border-radius: 4px; padding: 1px 8px; cursor: pointer; font-size: .78rem; }
@@ -235,7 +237,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
           <select id="output"><option value="both" selected>問題と解答</option><option value="problems">問題のみ</option><option value="answers">解答のみ</option></select></div>
         <div class="field"><label for="order">解答の位置</label>
           <select id="order"><option value="day" selected>日ごとに問題のあと</option><option value="last">最後にまとめる</option></select></div>
-        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="999999" placeholder="空欄なら毎回ちがう問題"></div>
+        <div class="field"><label for="seed">プリント番号（任意）</label><input id="seed" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="40" placeholder="プリント左下の番号で呼び出し"></div>
       </div>
       <div class="checks">
         <label class="check"><input id="sections" type="checkbox" checked>大問構成にする</label>
@@ -421,9 +423,102 @@ function onSetting() {
   schedule();
 }
 FIELDS.concat(CHECKS).forEach((f) => $(f).addEventListener("change", onSetting));
-["title", "count", "seed", "termsN"].forEach((f) => $(f).addEventListener("input", onSetting));
+["title", "count", "termsN"].forEach((f) => $(f).addEventListener("input", onSetting));
 
 renderDates();
+
+// ---------- 呼び出しコード（プリント番号） ----------
+// プリントの左下の「No.」に、問題が決まる設定（問題の種・単元・日ごとの単元・問題数・日付・用語の問題数・
+// 大問構成・学習順・単元の説明）をまとめた番号を書く。この番号を「プリント番号」の欄に入れると、同じプリントを呼び出せる。
+// 出力（問題・解答）と解答の位置は入れない（呼び出してから自由に選べるように）。課題名も入れない。
+// 単元の番号は CODE_UNITS の並び順。あとから単元を足すときは、必ず末尾に足す（並べかえると前の番号が読めなくなる）。
+const CODE_UNITS = ["e1_add_nocarry","e1_sub_noborrow","c1_compose","c1_clock","c1_three","e1_add_carry","e1_sub_borrow","w1_word","c1_numbers","c1_kurabe","c2_graph","e2_add2","e2_sub2","c2_length","c2_place","c2_time","c2_vertical","w2_addsub","e2_kuku","c2_mul_property","w2_mul","c2_frac","c2_pattern","e3_div_exact","e3_add3","e3_sub3","c3_add4","c3_units","e3_div_rem","c3_big","e3_mul_x1","c3_bargraph","c3_vertical_mul","c3_circle","c3_dec1","c3_frac_compare","c3_box","e3_mul_2x2","w3_word","c4_big","c4_linegraph","e4_div_3by1","c4_angle","e4_dec_addsub","e4_div_by2","c4_round","e4_order","c4_frac_same","c4_quad","c4_box2","g4_rect","c4_area_unit","c4_dec_muldiv","c4_cuboid","w4_word","g5_volume","e5_dec_mul","e5_dec_div","c5_congruent","g5_triangle_angle","c5_divisors","c5_gcd_lcm","c5_frac_dec","e5_frac_addsub","c5_average","c5_per_unit","c5_speed","g5_area","c5_percent","c5_regular","w5_word","c6_symmetry","c6_letter","e6_frac_muldiv","c6_mixed","c6_ratio","c6_scale","g6_circle","c6_prism_vol","c6_proportion","c6_cases","c6_data","w6_word","d1_abs","j1_int_addsub","j1_int_muldiv","j1_letter","d1_value","j1_linear_eq","d1_eq_more","d1_word_eq","w7_word","d1_func","g1_prop_graph","h1_sector","h1_solid","d1_surface","d1_relfreq","j2_poly","j2_monomial","d2_transform","j2_simul","d2_word_simul","w8_word","d2_linear","g2_linear_graph","h2_parallel","h2_polygon","h2_congruent","d2_prob","d2_quartile","j3_expand","j3_factor","d3_prime","j3_sqrt","d3_rationalize","j3_quad","d3_quad_more","w9_word","d3_ax2","g3_ax2_graph","h3_similar","d3_similar","d3_inscribed","h3_pythagoras","d3_sample"];
+for (const g of UNITS) for (const c of g.cats) for (const [k] of c.units) if (!CODE_UNITS.includes(k)) CODE_UNITS.push(k);
+const B32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";  // 見まちがえやすい I・L・O・U は使わない
+const DAY0 = Date.UTC(2024, 0, 1);
+const dayNo = (k) => Math.round((Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) - DAY0) / 86400000);
+const dayKey = (n) => { const d = new Date(DAY0 + n * 86400000); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
+function codeCheck(bits) { let h = 0x9d; for (const b of bits) h = ((h * 33) ^ (b + 7)) & 0xffff; return (h ^ (h >> 8)) & 0xff; }
+
+function encodeCode(cfg) {
+  const bits = [];
+  const put = (v, n) => { for (let i = n - 1; i >= 0; i--) bits.push((v >> i) & 1); };
+  const putVar = (v) => { do { const c = v & 7; v >>= 3; bits.push(v ? 1 : 0); put(c, 3); } while (v); };
+  const putUnits = (us) => { const ids = us.map((k) => CODE_UNITS.indexOf(k)).filter((i) => i >= 0); put(ids.length, 7); ids.forEach((i) => put(i, 8)); };
+  put(1, 3);  // 版
+  put(cfg.seed, 16); put(cfg.count, 7);
+  put(cfg.sections ? 1 : 0, 1); put(cfg.ordered ? 1 : 0, 1); put(cfg.guide ? 1 : 0, 1);
+  put(cfg.terms ? 1 : 0, 1); if (cfg.terms) put(cfg.terms, 7);
+  put(cfg.dates.length, 5);
+  cfg.dates.forEach((k, i) => (i ? putVar(dayNo(k) - dayNo(cfg.dates[i - 1]) - 1) : put(dayNo(k), 13)));
+  putUnits(cfg.common);
+  if (cfg.dates.length > 1) cfg.per_day.forEach((d) => { put(d ? 1 : 0, 1); if (d) { putUnits(d.units); put(d.count || 0, 7); } });
+  put(codeCheck(bits), 8);
+  while (bits.length % 5) bits.push(0);
+  let out = "";
+  for (let i = 0; i < bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5).join(""), 2)];
+  return out.match(/.{1,4}/g).join("-");
+}
+
+function decodeCode(text) {
+  const t = String(text).toUpperCase().replace(/[\s\-ー－]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1");
+  if (t.length < 12 || /[^0-9A-Z]/.test(t)) return null;
+  const bits = [];
+  for (const ch of t) { const v = B32.indexOf(ch); if (v < 0) return null; for (let i = 4; i >= 0; i--) bits.push((v >> i) & 1); }
+  let p = 0;
+  const get = (n) => { let v = 0; for (let i = 0; i < n; i++) { if (p >= bits.length) throw 0; v = v * 2 + bits[p++]; } return v; };
+  const getVar = () => { let v = 0, sh = 0, more; do { more = get(1); v |= get(3) << sh; sh += 3; } while (more && sh < 24); return v; };
+  const getUnits = () => { const n = get(7), us = []; for (let i = 0; i < n; i++) { const k = CODE_UNITS[get(8)]; if (!k) throw 0; us.push(k); } return us; };
+  try {
+    if (get(3) !== 1) return null;
+    const cfg = { seed: get(16), count: get(7), sections: !!get(1), ordered: !!get(1), guide: !!get(1) };
+    cfg.terms = get(1) ? get(7) : 0;
+    const n = get(5);
+    cfg.dates = [];
+    for (let i = 0; i < n; i++) cfg.dates.push(i ? dayKey(dayNo(cfg.dates[i - 1]) + 1 + getVar()) : dayKey(get(13)));
+    cfg.common = getUnits();
+    cfg.per_day = cfg.dates.map(() => null);
+    if (n > 1) cfg.per_day = cfg.dates.map(() => (get(1) ? { units: getUnits(), count: get(7) || null } : null));
+    const body = bits.slice(0, p);
+    if (get(8) !== codeCheck(body)) return null;
+    if (bits.slice(p).some((b) => b) || bits.length - p >= 5) return null;  // 余分な文字がある
+    if (!(cfg.seed >= 1 && cfg.count >= 1 && cfg.count <= 100)) return null;
+    return cfg;
+  } catch { return null; }
+}
+
+// 「プリント番号」の欄にコードが入ったら、その設定を画面にもどす（出力・解答の位置・課題名はそのまま）
+let appliedCode = "";
+function applyCode(cfg) {
+  dates.clear(); cfg.dates.forEach((k) => dates.add(k));
+  perDay = {};
+  cfg.dates.forEach((k, i) => { if (cfg.per_day[i]) perDay[k] = { units: [...cfg.per_day[i].units], count: cfg.per_day[i].count }; });
+  common = new Set(cfg.common); save();
+  target = "common";
+  $("count").value = cfg.count;
+  $("terms").checked = cfg.terms > 0; if (cfg.terms) $("termsN").value = cfg.terms;
+  $("sections").checked = cfg.sections; $("ordered").checked = cfg.ordered; $("guide").checked = cfg.guide;
+  if (cfg.dates.length) { const d = new Date(cfg.dates[0] + "T00:00"); view = new Date(d.getFullYear(), d.getMonth(), 1); }
+  const first = cfg.common[0] || (cfg.per_day.find((d) => d) || { units: [] }).units[0];
+  const g = first && UNITS.find((x) => x.cats.some((c) => c.units.some(([k]) => k === first)));
+  if (g) { grade = g.grade; store.set("grade", grade); }
+  const s = {}; FIELDS.forEach((k) => (s[k] = $(k).value)); CHECKS.forEach((k) => (s[k] = $(k).checked)); store.set("settings", s);
+  syncShuffle();
+  renderDates();
+}
+function seedInput() {
+  const v = $("seed").value.trim();
+  const cfg = decodeCode(v);
+  $("seed").classList.toggle("bad", !!v && !cfg && !/^\d{1,6}$/.test(v));
+  if (!cfg) appliedCode = "";  // 消したあとに同じ番号を入れ直したときも、もう一度呼び出す
+  if (cfg && v !== appliedCode) {
+    appliedCode = v;
+    applyCode(cfg);
+    setStatus("プリントを呼び出しました。出力（解答をつけるか）は自由に変えられます。");
+  }
+  schedule();
+}
+$("seed").addEventListener("input", seedInput);
 
 // ---------- PDF ----------
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", location.href).href;
@@ -433,7 +528,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-c425399476.b64.txt";
-const PAGE_V = "e5100782a8";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "9972435f26";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
@@ -476,6 +571,9 @@ def make(cfg):
     c = json.loads(cfg)
     ds = [dt.date.fromisoformat(d) for d in c["dates"]]
     days = make_days(c["units"], int(c["count"]), int(c["seed"]), ds, shuffle=c["shuffle"], per_day=c["per_day"], terms=c["terms"], ordered=c.get("ordered", False))
+    if c.get("code"):  # 左下の No. には、呼び出しコード（何日分かあるときは何日目か）を書く
+        for i, d in enumerate(days):
+            d["serial"] = c["code"] + (f"（{i + 1}日目）" if len(days) > 1 else "")
     return build_pdf(days, title=c["title"], spacing=c["spacing"], output=c["output"],
                      answers_last=c["answers_last"], sections=c["sections"], guide=c.get("guide", False))
 `);
@@ -531,13 +629,18 @@ async function make(fresh = true) {
   const termsN = parseInt($("termsN").value, 10);
   if ($("terms").checked && !(termsN >= 1 && termsN <= 100)) { done(); setStatus("用語の問題数は 1〜100 で入力してください。", true); return; }
   const title = $("title").value.trim() || "計算プリント";
-  const seedIn = parseInt($("seed").value, 10);
-  const seed = seedIn >= 1 && seedIn <= 999999 ? seedIn : (fresh || curSeed === null ? 1 + Math.floor(Math.random() * 999999) : curSeed);
+  // 「プリント番号」の欄：呼び出しコードならその種、6けたまでの数（前の番号）ならその数、空欄なら毎回ちがう種
+  const seedText = $("seed").value.trim();
+  const fromCode = decodeCode(seedText);
+  const seedIn = fromCode ? fromCode.seed : /^\d{1,6}$/.test(seedText) ? parseInt(seedText, 10) : NaN;
+  const seed = seedIn >= 1 && seedIn <= 999999 ? seedIn : (fresh || curSeed === null ? 1 + Math.floor(Math.random() * 65535) : curSeed);
   curSeed = seed;
   const output = $("output").value;
   const sections = $("sections").checked;
   const cfg = { units: common.size ? [...common] : per_day.find((d) => d).units, count, seed, dates: list, per_day,
     shuffle: false, ordered: $("ordered").checked, sections, terms: $("terms").checked ? termsN : 0, guide: $("guide").checked, title, spacing: "normal", output, answers_last: $("order").value === "last" };
+  // 呼び出しコード（種が 65535 より大きい前の番号のときは作れないので、前と同じ6けたの番号を書く）
+  cfg.code = seed <= 65535 ? encodeCode({ ...cfg, common: [...common] }) : "";
   setStatus(list.length > 1 ? `${list.length} 日分を作成中…` : "作成中…");
   await new Promise((r) => setTimeout(r, 30));
   if (cfg.guide && !gothicLoaded) {  // 説明の重要語句に使うゴシック体は、説明を入れるときだけ読み込む
@@ -556,7 +659,7 @@ async function make(fresh = true) {
     await render(lastPdf, fresh);
     if (again) return;  // さらに新しい変更がある
     setStatus("できました");
-    $("pinfo").textContent += `　No.${String(seed).padStart(6, "0")}（同じ番号で同じ問題を作れます）`;
+    $("pinfo").textContent += cfg.code ? `　No.${cfg.code}（この番号で同じプリントを呼び出せます）` : `　No.${String(seed).padStart(6, "0")}（同じ番号で同じ問題を作れます）`;
     if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
   } catch (e) {
     console.error(e);
