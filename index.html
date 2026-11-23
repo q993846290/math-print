@@ -91,7 +91,12 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; margin-bottom: 4px; font-size: .76rem; font-weight: 700; color: var(--faint); letter-spacing: .1em; }
 legend .link { font-size: .72rem; letter-spacing: 0; }
 .unit { display: flex; gap: 8px; align-items: flex-start; padding: 2px 0; cursor: pointer; font-size: .92rem; line-height: 1.5; }
-.unit input { margin-top: 3px; accent-color: var(--ink); }
+/* 単元のチェックボックス：少し大きめの角丸の四角。選ぶと黒くぬられて白い ✓（ブラウザ標準の形は使わず、どの端末でも同じ形に） */
+.unit { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }  /* 続けてタッチしても、単元名の文字が選択されないように */
+.unit input { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 2px 0 0; border: 2px solid var(--faint); border-radius: 5px; background: var(--bg); display: grid; place-items: center; cursor: pointer; }
+.unit input:checked { background: var(--ink); border-color: var(--ink); }
+.unit input:checked::after { content: ""; width: 5px; height: 9px; border: solid var(--bg); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+@media (hover: hover) { .unit:hover input:not(:checked) { border-color: var(--ink); } }
 /* 選んだ単元の数：上に細い線、数を大きな太字で。「すべて外す」は右はしの枠つきボタン */
 .chosen { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: .82rem; }
 .chosen .lbl { display: flex; align-items: baseline; gap: 6px; color: var(--sub); }
@@ -528,7 +533,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-c425399476.b64.txt";
-const PAGE_V = "9972435f26";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "1e0c10a160";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
