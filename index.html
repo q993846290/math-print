@@ -188,6 +188,12 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .termn { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; white-space: nowrap; }
 .termn input[type="number"] { width: 4.6em; padding: 4px 8px; text-align: right; }
 .termn:has(input:disabled) { opacity: .45; }
+/* 設定の4つのボタン：チェックボックスは見せず（読み上げ・キーボード用に残す）、オンのときはボタンを黒くぬる（学年のタブと同じ） */
+.checks .check { position: relative; }
+.checks .check > input[type="checkbox"], .termlbl input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.checks .check:has(input[type="checkbox"]:checked) { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.checks .check:has(input[type="checkbox"]:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.checks .check:has(input[type="checkbox"]:checked) .termn input[type="number"] { background: var(--bg); color: var(--ink); border-color: var(--bg); }
 /* プレビュー：作り直し中はうすく */
 .pages canvas { transition: opacity .15s; }
 .pages.stale canvas { opacity: .4; }
@@ -533,7 +539,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-c425399476.b64.txt";
-const PAGE_V = "1e0c10a160";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "d8153409c1";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
