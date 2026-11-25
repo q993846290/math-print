@@ -17,13 +17,12 @@ button span { display: block; font-size: .8rem; color: #555; }
 </head>
 <body>
 <h1>LINEに送れるかのテスト</h1>
-<p>上から順にボタンを押して、共有の画面に <b>LINE</b> が出るか見てください（送らずに閉じてかまいません）。LINE が出た番号を教えてください。</p>
-<button data-v="A"><b>A</b><span>PDFだけ（いまのサイトと同じ）</span></button>
-<button data-v="B"><b>B</b><span>PDFだけ・ファイル名を英字に（print.pdf）</span></button>
-<button data-v="C"><b>C</b><span>PDF＋タイトル（文字は送らない）</span></button>
-<button data-v="D"><b>D</b><span>PDF＋短い文字「計算プリント」</span></button>
-<button data-v="E"><b>E</b><span>画像（PNG）にして送る</span></button>
-<button data-v="F"><b>F</b><span>PDFの種類を書かずに送る</span></button>
+<p>こんどは、ボタンを押して <b>LINE</b> が出たら、<b>自分だけのトーク（Keepメモなど）に送って</b>みてください。PDFのほかに文字のメッセージがとどいたかどうかを教えてください。</p>
+<button data-v="C"><b>C</b><span>PDF＋タイトル「計算プリント」（さっき LINE が出たもの）</span></button>
+<button data-v="G"><b>G</b><span>PDF＋空のタイトル</span></button>
+<button data-v="H"><b>H</b><span>PDF＋空白1文字のタイトル</span></button>
+<button data-v="I"><b>I</b><span>PDF＋見えない文字のタイトル</span></button>
+<button data-v="J"><b>J</b><span>PDF＋タイトルにファイル名</span></button>
 <div id="log"></div>
 <script src="pdf.min.js"></script>
 <script>
@@ -49,6 +48,11 @@ function data(v) {
   if (v === "D") return { files: [new File([pdf], name, { type: "application/pdf" })], text: "計算プリント" };
   if (v === "E") return { files: [new File([png], "計算プリント_20261125.png", { type: "image/png" })] };
   if (v === "F") return { files: [new File([pdf], name)] };
+  const f = [new File([pdf], name, { type: "application/pdf" })];
+  if (v === "G") return { files: f, title: "" };
+  if (v === "H") return { files: f, title: " " };
+  if (v === "I") return { files: f, title: "\u200b" };
+  if (v === "J") return { files: f, title: name };
 }
 document.querySelectorAll("button").forEach((b) => b.addEventListener("click", async () => {
   const v = b.dataset.v;
