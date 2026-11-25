@@ -559,7 +559,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-2d739de3eb.b64.txt";
-const PAGE_V = "8e61ca2425";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "a6e430570c";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
@@ -793,6 +793,18 @@ if (inClaude) {
   // 2本目の指が置かれた時点で止める（とちゅうからでは止まらないことがある）
   window.addEventListener("touchstart", (e) => { if (e.touches.length > 1) stop(e); }, opt);
   window.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) stop(e); }, opt);
+  // それでも拡大されてしまったら、指をはなしたあとで元の大きさにもどす
+  // （iPhone の Safari は、見えにくい人のために拡大をいつでもできるようにしているので、完全には止められない）
+  const meta = document.querySelector('meta[name="viewport"]'), base = meta.content, vv = window.visualViewport;
+  let timer = 0;
+  const reset = () => {
+    if (!vv || vv.scale <= 1.01) return;
+    meta.content = base.replace("initial-scale=1", "initial-scale=1.0001");
+    setTimeout(() => { meta.content = base; }, 60);
+  };
+  const later = () => { clearTimeout(timer); timer = setTimeout(reset, 250); };
+  if (vv) vv.addEventListener("resize", later);
+  window.addEventListener("touchend", (e) => { if (!e.touches.length) later(); }, opt);
   // すばやい2回タップでの拡大も止める（入力欄・ボタンの操作はそのまま）
   let last = 0;
   window.addEventListener("touchend", (e) => {
