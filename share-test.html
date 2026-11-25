@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>共有のテスト</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 0; padding: 20px 16px 40px; line-height: 1.6; color: #111; background: #fff; }
+h1 { font-size: 1.2rem; margin: 0 0 6px; }
+p { margin: 0 0 16px; font-size: .9rem; color: #444; }
+button { display: block; width: 100%; text-align: left; font: inherit; padding: 12px 14px; margin: 0 0 10px; border: 1.5px solid #111; border-radius: 8px; background: #fff; color: #111; }
+button b { font-size: 1.05rem; }
+button span { display: block; font-size: .8rem; color: #555; }
+#log { font-size: .8rem; color: #a00; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>LINEに送れるかのテスト</h1>
+<p>上から順にボタンを押して、共有の画面に <b>LINE</b> が出るか見てください（送らずに閉じてかまいません）。LINE が出た番号を教えてください。</p>
+<button data-v="A"><b>A</b><span>PDFだけ（いまのサイトと同じ）</span></button>
+<button data-v="B"><b>B</b><span>PDFだけ・ファイル名を英字に（print.pdf）</span></button>
+<button data-v="C"><b>C</b><span>PDF＋タイトル（文字は送らない）</span></button>
+<button data-v="D"><b>D</b><span>PDF＋短い文字「計算プリント」</span></button>
+<button data-v="E"><b>E</b><span>画像（PNG）にして送る</span></button>
+<button data-v="F"><b>F</b><span>PDFの種類を書かずに送る</span></button>
+<div id="log"></div>
+<script src="pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", location.href).href;
+let pdf = null, png = null;
+const log = (t) => { document.getElementById("log").textContent += t + "\n"; };
+(async () => {
+  const buf = await (await fetch("share-test.pdf")).arrayBuffer();
+  pdf = new Uint8Array(buf);
+  const doc = await pdfjsLib.getDocument({ data: pdf.slice() }).promise;
+  const page = await doc.getPage(1);
+  const vp = page.getViewport({ scale: 2 });
+  const cv = document.createElement("canvas"); cv.width = vp.width; cv.height = vp.height;
+  const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  png = await new Promise((r) => cv.toBlob(r, "image/png"));
+})().catch((e) => log("読みこめませんでした: " + e));
+function data(v) {
+  const name = "計算プリント_20261125.pdf";
+  if (v === "A") return { files: [new File([pdf], name, { type: "application/pdf" })] };
+  if (v === "B") return { files: [new File([pdf], "print.pdf", { type: "application/pdf" })] };
+  if (v === "C") return { files: [new File([pdf], name, { type: "application/pdf" })], title: "計算プリント" };
+  if (v === "D") return { files: [new File([pdf], name, { type: "application/pdf" })], text: "計算プリント" };
+  if (v === "E") return { files: [new File([png], "計算プリント_20261125.png", { type: "image/png" })] };
+  if (v === "F") return { files: [new File([pdf], name)] };
+}
+document.querySelectorAll("button").forEach((b) => b.addEventListener("click", async () => {
+  const v = b.dataset.v;
+  if (!pdf || (v === "E" && !png)) { log("まだ準備中です。少し待ってからもう一度押してください"); return; }
+  const d = data(v);
+  if (navigator.canShare && !navigator.canShare(d)) { log(v + "：この形では共有できません"); return; }
+  try { await navigator.share(d); log(v + "：共有しました"); }
+  catch (e) { log(v + "：" + (e.name === "AbortError" ? "閉じました" : e.name + " " + e.message)); }
+}));
+</script>
+</body>
+</html>
