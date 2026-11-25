@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>プリント作成</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +20,7 @@
 :root[data-theme="dark"] { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; --line: #5a5a5a; --ring: rgba(255,255,255,.18); --sat: #8cb4ff; color-scheme: dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }  /* ダブルタップで拡大しない */
 body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; font-weight: 500; line-height: 1.7; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 button, input, select { font: inherit; color: inherit; }
@@ -556,7 +557,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-2d739de3eb.b64.txt";
-const PAGE_V = "eaea7d4769";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "550eb43995";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
@@ -782,6 +783,9 @@ if (inClaude) {
     cur.dispatchEvent(new Event("change", { bubbles: true }));
   });
 })();
+// 画面を拡大・縮小しないように固定する（iPhone・iPad の Safari は、ページの設定だけでは 2本指の拡大を止められない）
+["gesturestart", "gesturechange", "gestureend"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
+document.addEventListener("touchmove", (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 boot();
 </script>
 
