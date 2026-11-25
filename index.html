@@ -26,10 +26,27 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
-.bar-in { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap;
+/* 見出し・状態・「作る」「ダウンロード」を、どの画面でも1行にならべる（ボタンの位置が変わらないように） */
+.bar-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 16px;
   padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.bar h1 { font-size: 1.15rem; font-weight: 900; margin: 0 auto 0 0; letter-spacing: .06em; }
-.status { font-size: .8rem; color: var(--sub); }
+.bar h1 { font-size: 1.15rem; font-weight: 900; margin: 0; letter-spacing: .06em; white-space: nowrap; }
+.status { font-size: .8rem; color: var(--sub); text-align: right; line-height: 1.35; min-width: 0;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+#save[hidden] { display: inline-block !important; visibility: hidden; }  /* まだ押せないときも場所はとっておく（「作る」が動かないように） */
+/* スマホでは、状態の文字を見出しの下におき、ボタンは右に固定する */
+@media (max-width: 600px) {
+  .bar-in { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: auto auto; gap: 2px 8px; padding-block: 10px; }
+  .bar h1 { grid-area: 1 / 1; font-size: 1.05rem; letter-spacing: .03em; }
+  .status { grid-area: 2 / 1; text-align: left; font-size: .72rem; -webkit-line-clamp: 1; line-clamp: 1; display: block; white-space: nowrap; text-overflow: ellipsis; }
+  .status.err { white-space: normal; }  /* まちがいのお知らせは省略しない */
+  #make { grid-area: 1 / 2 / 3 / 3; }
+  #save { grid-area: 1 / 3 / 3 / 4; }
+  .bar .btn { padding: 8px 12px; }
+}
+@media (max-width: 350px) {
+  .bar h1 { font-size: .95rem; letter-spacing: 0; }
+  .bar .btn { padding: 7px 9px; }
+}
 .status.err { color: var(--red); }
 
 .btn { font-weight: 700; border: 1.5px solid var(--ink); background: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 500; white-space: nowrap; }
@@ -216,7 +233,6 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
     <span class="status" id="status" role="status">準備しています…</span>
     <button class="btn primary" id="make" type="button" disabled>作る</button>
     <button class="btn" id="save" type="button" disabled hidden>ダウンロード</button>
-    <button class="btn" id="share" type="button" disabled hidden>共有</button>
   </div>
 </div>
 
@@ -540,7 +556,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-2d739de3eb.b64.txt";
-const PAGE_V = "b8dfcc4641";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "eaea7d4769";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
@@ -673,7 +689,6 @@ async function make(fresh = true) {
     setStatus("できました");
     $("pinfo").textContent += cfg.code ? `　No.${cfg.code}（この番号で同じプリントを呼び出せます）` : `　No.${String(seed).padStart(6, "0")}（同じ番号で同じ問題を作れます）`;
     if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
-    if (canShareFile()) { $("share").hidden = false; $("share").disabled = false; }
   } catch (e) {
     console.error(e);
     setStatus("作成できませんでした: " + String(e.message || e).split("\n").slice(-2).join(" "), true);
@@ -724,18 +739,6 @@ $("save").addEventListener("click", async () => {
   const a = el("a", { href: url, download: lastName });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
-});
-
-// 共有：PDF のファイルだけを送る（URL や文字はつけない。LINE などで PDF だけがとどく）
-function pdfFile() { return new File([lastPdf], lastName, { type: "application/pdf" }); }
-function canShareFile() {
-  if (inClaude || !lastPdf || !navigator.canShare) return false;
-  try { return navigator.canShare({ files: [pdfFile()] }); } catch { return false; }
-}
-$("share").addEventListener("click", async () => {
-  if (!lastPdf) return;
-  try { await navigator.share({ files: [pdfFile()] }); }
-  catch (e) { if (!e || e.name !== "AbortError") setStatus("共有できませんでした。ダウンロードしてから送ってください", true); }
 });
 
 if (inClaude) {
