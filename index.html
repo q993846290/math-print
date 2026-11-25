@@ -216,6 +216,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
     <span class="status" id="status" role="status">準備しています…</span>
     <button class="btn primary" id="make" type="button" disabled>作る</button>
     <button class="btn" id="save" type="button" disabled hidden>ダウンロード</button>
+    <button class="btn" id="share" type="button" disabled hidden>共有</button>
   </div>
 </div>
 
@@ -539,7 +540,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-2d739de3eb.b64.txt";
-const PAGE_V = "638c705691";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "b8dfcc4641";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
@@ -672,6 +673,7 @@ async function make(fresh = true) {
     setStatus("できました");
     $("pinfo").textContent += cfg.code ? `　No.${cfg.code}（この番号で同じプリントを呼び出せます）` : `　No.${String(seed).padStart(6, "0")}（同じ番号で同じ問題を作れます）`;
     if (!inClaude || downloads) { $("save").hidden = false; $("save").disabled = false; }
+    if (canShareFile()) { $("share").hidden = false; $("share").disabled = false; }
   } catch (e) {
     console.error(e);
     setStatus("作成できませんでした: " + String(e.message || e).split("\n").slice(-2).join(" "), true);
@@ -722,6 +724,18 @@ $("save").addEventListener("click", async () => {
   const a = el("a", { href: url, download: lastName });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+});
+
+// 共有：PDF のファイルだけを送る（URL や文字はつけない。LINE などで PDF だけがとどく）
+function pdfFile() { return new File([lastPdf], lastName, { type: "application/pdf" }); }
+function canShareFile() {
+  if (inClaude || !lastPdf || !navigator.canShare) return false;
+  try { return navigator.canShare({ files: [pdfFile()] }); } catch { return false; }
+}
+$("share").addEventListener("click", async () => {
+  if (!lastPdf) return;
+  try { await navigator.share({ files: [pdfFile()] }); }
+  catch (e) { if (!e || e.name !== "AbortError") setStatus("共有できませんでした。ダウンロードしてから送ってください", true); }
 });
 
 if (inClaude) {
