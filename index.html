@@ -20,7 +20,9 @@
 :root[data-theme="dark"] { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; --line: #5a5a5a; --ring: rgba(255,255,255,.18); --sat: #8cb4ff; color-scheme: dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }  /* ダブルタップで拡大しない */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* 2本指・ダブルタップで拡大しない（スクロールだけを許す。manipulation だと 2本指の拡大は許されてしまう） */
+html, body, * { touch-action: pan-x pan-y; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; font-weight: 500; line-height: 1.7; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 button, input, select { font: inherit; color: inherit; }
@@ -216,7 +218,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .pages canvas { transition: opacity .15s; }
 .pages.stale canvas { opacity: .4; }
 /* iPad 用の数字パッド（iPad には数字だけのキーボードがないため） */
-.numpad { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--bg); border-top: 1.5px solid var(--ink); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.numpad { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--bg); border-top: 1.5px solid var(--ink); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); touch-action: pan-x pan-y; user-select: none; -webkit-user-select: none; }
 .numpad .np-keys { display: grid; grid-template-columns: repeat(3, 1fr) 1.4fr; gap: 8px; max-width: 560px; margin: 0 auto; }
 .numpad[hidden] { display: none; }
 .numpad button { -webkit-tap-highlight-color: transparent; color: var(--ink); height: 52px; border: 1.5px solid var(--rule); border-radius: 6px; background: var(--bg); font-size: 1.35rem; font-weight: 700; cursor: pointer; }
@@ -557,7 +559,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-2d739de3eb.b64.txt";
-const PAGE_V = "5c2e1f4c43";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "8e61ca2425";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
