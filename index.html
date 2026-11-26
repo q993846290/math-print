@@ -558,8 +558,8 @@ const inClaude = !!(window.claude && window.claude.use);
 const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Italic.ttf", "KaTeX_Size4-Regular.ttf", "KaTeX_AMS-Regular.ttf", "NotoSansJP-Bold-mark.ttf"];
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
-const BUNDLE = "bundle-ed784e8084.b64.txt";
-const PAGE_V = "b11376da5a";  // ページの版（中身が変わるたびに変わる）
+const BUNDLE = "bundle-fa4605f58c.b64.txt";
+const PAGE_V = "d17b7dffb0";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
