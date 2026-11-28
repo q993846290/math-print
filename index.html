@@ -203,6 +203,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .cal .mcell.t { border-top: 1.5px solid var(--faint); }
 .cal .mcell.l, .cal .dcell.l { border-left: 1.5px solid var(--faint); }
 .cal .dcell.b { border-bottom: 1.5px solid var(--faint); }
+.cal button.past, .cal button.past.sun, .cal button.past.sat { color: var(--rule); cursor: default; background: none; border-color: transparent; }
 .cal-wrap { position: relative; }
 .cal-wrap::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 12px; height: 22px; pointer-events: none;
   background: linear-gradient(transparent, var(--bg)); border-radius: 0 0 8px 8px; }
@@ -360,11 +361,12 @@ function buildCal() {
   $("caldow").replaceChildren(...DOW.split("").map((d, i) => el("div", { className: "dow" + (i === 0 ? " sun" : i === 6 ? " sat" : ""), textContent: d })));
   const grid = $("cal");
   grid.replaceChildren();
-  let first = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  // 過去の日は選ばないので、今週から出す（番号で呼び出した前のプリントは、その日から）
+  let first = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
   let end = new Date(today.getFullYear() + 1, today.getMonth() + 1, 0);
-  if (calFrom && calFrom < first) first = new Date(calFrom.getFullYear(), calFrom.getMonth(), 1);  // 番号で呼び出した前のプリントの日付
+  if (calFrom && calFrom < first) first = new Date(calFrom.getFullYear(), calFrom.getMonth(), calFrom.getDate());  // 番号で呼び出した前のプリントの日付
   if (calFrom && calFrom > end) end = new Date(calFrom.getFullYear(), calFrom.getMonth() + 1, 0);
-  let d = new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay());
+  let d = new Date(first.getFullYear(), first.getMonth(), first.getDate() - first.getDay());
   const weekTop = new Map();  // その週の日付 → 週のいちばん上の要素（月の見出しがあれば見出し）
   while (d <= end) {
     // その週に 1日があれば、月の境目を階段の形の線で区切る：
@@ -417,7 +419,9 @@ function showMonth() {
 function renderCal() {
   if (!calBuilt) buildCal();
   for (const [k, { b, date }] of calCells) {
-    b.className = [date.getDay() === 0 ? "sun" : date.getDay() === 6 ? "sat" : "", dates.has(k) ? "on" : "", k === iso(today) ? "today" : ""].join(" ");
+    const past = date < today && !dates.has(k);  // 終わった日はうすく出して、選べないようにする
+    b.className = [date.getDay() === 0 ? "sun" : date.getDay() === 6 ? "sat" : "", dates.has(k) ? "on" : "", k === iso(today) ? "today" : "", past ? "past" : ""].join(" ");
+    b.disabled = past;
     b.setAttribute("aria-pressed", dates.has(k) ? "true" : "false");
   }
 }
@@ -630,7 +634,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-a552b30a4a.b64.txt";
-const PAGE_V = "b35f2a2f13";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "e50bd247c4";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
