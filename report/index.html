@@ -28,18 +28,12 @@ button, input, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
-.bar-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px;
+.bar-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center;
   padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .bar h1 { font-size: 1.15rem; font-weight: 900; margin: 0; letter-spacing: .06em; white-space: nowrap; }
-.status { font-size: .8rem; color: var(--sub); text-align: right; line-height: 1.35; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.status.err { color: var(--red); }
 @media (max-width: 600px) {
-  .bar-in { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 2px 8px; padding-block: 10px; }
-  .bar h1 { grid-area: 1 / 1; font-size: 1.05rem; letter-spacing: .03em; }
-  .status { grid-area: 2 / 1; text-align: left; font-size: .72rem; }
-  .status.err { white-space: normal; }
-  #copy { grid-area: 1 / 2 / 3 / 3; }
-  .bar .btn { padding: 8px 14px; }
+  .bar-in { padding-block: 10px; }
+  .bar h1 { font-size: 1.05rem; letter-spacing: .03em; }
 }
 
 .btn { border: 1.5px solid var(--ink); background: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 700; white-space: nowrap; }
@@ -97,8 +91,6 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 <body>
 <header class="bar"><div class="bar-in">
   <h1>授業報告メッセージ</h1>
-  <div class="status" id="status" role="status">報告を貼り付けてください</div>
-  <button class="btn primary" id="copy" type="button">コピー</button>
 </div></header>
 
 <main class="main">
@@ -184,17 +176,14 @@ function build() {
   out += "\n\n♢ 今日の学習内容\n" + (content.join("\n") || "・") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
   $("out").value = out;
   $("warn").textContent = warn.join(" ");
-  const found = ["date", "dur", "content", "hw", "next"].filter(k => s[k] && s[k].length).length;
-  setStatus(has ? `${found}/5 項目を読み取りました` + ($("last").checked ? "・今月最後" : "") : "報告を貼り付けてください", false);
   $("count").textContent = `${[...out].length}文字`;
 }
-function setStatus(msg, err) { const st = $("status"); st.textContent = msg; st.classList.toggle("err", !!err); }
 let tm;
-function flash(msg) { setStatus(msg); clearTimeout(tm); tm = setTimeout(build, 1800); }
+function flash(msg) { const b = $("copy2"); b.textContent = msg; clearTimeout(tm); tm = setTimeout(() => { b.textContent = "コピー"; }, 1800); }
 async function copy() {
   const v = $("out").value;
   try { await navigator.clipboard.writeText(v); flash("コピーしました"); }
-  catch (e) { $("out").select(); try { document.execCommand("copy") ? flash("コピーしました") : setStatus("長押しでコピーしてください", true); } catch (_) { setStatus("長押しでコピーしてください", true); } }
+  catch (e) { $("out").select(); try { flash(document.execCommand("copy") ? "コピーしました" : "長押しでコピー"); } catch (_) { flash("長押しでコピー"); } }
 }
 
 for (const k of ["greet", "closing", "monthEnd"]) {
@@ -205,8 +194,7 @@ $("src").value = store.get("draft") ?? SAMPLE;
 $("src").addEventListener("input", () => { store.set("draft", $("src").value); build(); });
 $("last").addEventListener("change", build);
 $("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").checked = false; build(); $("src").focus(); });
-$("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); flash("はじめの文に戻しました"); });
-$("copy").addEventListener("click", copy);
+$("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); });
 $("copy2").addEventListener("click", copy);
 build();
 }
