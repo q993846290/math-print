@@ -175,12 +175,12 @@ function build() {
   const s = parse(src), warn = [];
   let ns = nextSentence(s);
   if (!ns) { ns = "次回の日程は改めてご連絡いたします。"; if (has) warn.push("次回指導予定の日付が読み取れませんでした。"); }
-  const content = (s.content || []).map(l => fixText("・" + l.replace(/^[・･\-－*•]\s*/, "")));
+  const content = (s.content || []).map(fixText);
   if (!content.length && has) warn.push("指導内容が見つかりませんでした。");
   const hw = (s.hw || []).map(fixText);
   let out = $("greet").value + ns;
   if (isLast()) out += "\n\n" + $("monthEnd").value;
-  out += "\n\n♢ 今日の学習内容\n" + (content.join("\n") || "・") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
+  out += "\n\n♢ 今日の学習内容\n" + content.join("\n") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
   $("out").value = out;
   $("warn").textContent = warn.join(" ");
   $("count").textContent = `${[...out].length}文字`;
