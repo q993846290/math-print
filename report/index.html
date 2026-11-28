@@ -208,6 +208,41 @@ $("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value =
 $("copy2").addEventListener("click", copy);
 build();
 }
+// 画面を拡大・縮小しないように固定する（iPhone・iPad の Safari は、ページの設定だけでは 2本指の拡大を止められない）
+(function lockZoom() {
+  const stop = (e) => { if (e.cancelable) e.preventDefault(); };
+  const opt = { passive: false, capture: true };
+  ["gesturestart", "gesturechange", "gestureend"].forEach((t) => { window.addEventListener(t, stop, opt); document.addEventListener(t, stop, opt); });
+  // 2本目の指が置かれた時点で止める（とちゅうからでは止まらないことがある）
+  window.addEventListener("touchstart", (e) => { if (e.touches.length > 1) stop(e); }, opt);
+  window.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) stop(e); }, opt);
+  // それでも拡大されてしまったら、指をはなしたあとで元の大きさにもどす
+  // （iPhone の Safari は、見えにくい人のために拡大をいつでもできるようにしているので、完全には止められない）
+  const meta = document.querySelector('meta[name="viewport"]'), base = meta.content, vv = window.visualViewport;
+  let timer = 0;
+  const reset = () => {
+    if (!vv || vv.scale <= 1.01) return;
+    meta.content = base.replace("initial-scale=1", "initial-scale=1.0001");
+    setTimeout(() => { meta.content = base; }, 60);
+  };
+  const later = () => { clearTimeout(timer); timer = setTimeout(reset, 250); };
+  if (vv) vv.addEventListener("resize", later);
+  window.addEventListener("touchend", (e) => { if (!e.touches.length) later(); }, opt);
+  // 入力欄から出たとき（キーボードを閉じたとき）も、拡大されていたら元にもどす
+  document.addEventListener("focusout", later, true);
+  // パソコンの Ctrl（⌘）+ ホイール・Ctrl（⌘）+ ＋／－／0 での拡大も止める
+  window.addEventListener("wheel", (e) => { if (e.ctrlKey || e.metaKey) stop(e); }, opt);
+  window.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && ["+", "-", "=", "0", ";", "_"].includes(e.key)) stop(e);
+  }, opt);
+  // すばやい2回タップでの拡大も止める（入力欄・ボタンの操作はそのまま）
+  let last = 0;
+  window.addEventListener("touchend", (e) => {
+    const now = Date.now();
+    if (now - last < 350 && !e.target.closest("input, textarea, select, button, label, a")) stop(e);
+    last = now;
+  }, opt);
+})();
 </script>
 </body>
 </html>
