@@ -62,7 +62,7 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 #src { resize: none; overflow: hidden; min-height: 0; }
 .under { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
 .under .btn { min-height: 46px; padding: 0 24px; font-size: 1rem; }
-.toggle { width: 100%; min-height: 52px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bg); font-weight: 700; font-size: 1rem; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s; }
+.toggle { display: block; margin-left: auto; min-height: 44px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--bg); font-weight: 700; font-size: .95rem; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s; }
 @media (hover: hover) { .toggle:hover { border-color: var(--ink); } }
 .toggle[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .toggle { transition: none; } }
@@ -90,8 +90,8 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .pv-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
 .pv-head h2 { font-size: 1.05rem; font-weight: 900; margin: 0; }
 .pv-head span { font-size: .78rem; color: var(--sub); }
-.sheet { background: var(--soft); padding: 12px; border-radius: 4px; }
-#out { min-height: 0; resize: none; overflow: hidden; background: var(--bg); border-color: var(--rule); }
+.sheet { background: none; padding: 0; }
+#out { min-height: 0; resize: none; overflow: hidden; }
 .pv-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; }
 </style>
 </head>
