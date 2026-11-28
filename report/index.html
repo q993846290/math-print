@@ -49,7 +49,7 @@ button, input, textarea { font: inherit; color: inherit; }
   padding-block: 8px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 @media (max-width: 980px) { .main { grid-template-columns: minmax(0, 1fr); gap: 0; } }
 .col { min-width: 0; }
-.sec { padding-block: 20px; border-bottom: 1px solid var(--rule); min-width: 0; }
+.sec { padding-block: 20px; min-width: 0; }
 .sec:last-child { border-bottom: 0; }
 .sec h2 { font-size: 1.05rem; font-weight: 900; margin: 0 0 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .sec h2 .t { display: flex; gap: 10px; align-items: baseline; }
@@ -92,7 +92,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .pv-head span { font-size: .78rem; color: var(--sub); }
 .sheet { background: var(--soft); padding: 12px; border-radius: 4px; }
 #out { min-height: 0; resize: none; overflow: hidden; background: var(--bg); border-color: var(--rule); }
-.pv-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; }
+.pv-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -111,7 +111,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
   <section class="sec">
     <h2>送信用メッセージ</h2>
     <div class="sheet"><textarea id="out" aria-label="送信用メッセージ"></textarea></div>
-    <div class="pv-foot"><span class="note" id="count"></span><button class="btn primary" id="copy2" type="button">コピー</button></div>
+    <div class="pv-foot"><button class="btn primary" id="copy2" type="button">コピー</button></div>
   </section>
 </main>
 
@@ -168,7 +168,6 @@ function build() {
   $("out").value = out;
   fit();
   $("warn").textContent = warn.join(" ");
-  $("count").textContent = `${[...out].length}文字`;
 }
 let tm;
 function flash(msg) { const b = $("copy2"); b.textContent = msg; clearTimeout(tm); tm = setTimeout(() => { b.textContent = "コピー"; }, 1800); }
