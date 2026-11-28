@@ -203,6 +203,7 @@ $("last").addEventListener("click", () => { $("last").setAttribute("aria-pressed
 $("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").setAttribute("aria-pressed", "false"); fit(); build(); $("src").focus(); });
 const fitObs = new ResizeObserver(() => fit()); fitObs.observe($("src").parentElement);
 fit();
+if (document.fonts) document.fonts.ready.then(fit);
 $("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); });
 $("copy2").addEventListener("click", copy);
 build();
