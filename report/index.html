@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>授業報告メッセージ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* Layout: プリント作成と同じ。白い紙面に罫線だけで区切る。左に入力と設定、右に送信用メッセージ。色は墨一色、赤はお知らせだけ。 */
+:root {
+  --bg: #ffffff; --ink: #000000; --sub: #3d3d3d; --faint: #6e6e6e; --rule: #d4d4d4; --soft: #f5f5f5; --red: #c8321f; --line: #b8b8b8; --ring: rgba(0,0,0,.12);
+  --font: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; --line: #5a5a5a; --ring: rgba(255,255,255,.18); color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #121212; --ink: #ffffff; --sub: #cfcfcf; --faint: #9a9a9a; --rule: #3a3a3a; --soft: #1c1c1c; --red: #ff8a7a; --line: #5a5a5a; --ring: rgba(255,255,255,.18); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body, * { touch-action: pan-x pan-y; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; font-weight: 500; line-height: 1.7; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.bar-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px;
+  padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar h1 { font-size: 1.15rem; font-weight: 900; margin: 0; letter-spacing: .06em; white-space: nowrap; }
+.status { font-size: .8rem; color: var(--sub); text-align: right; line-height: 1.35; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.status.err { color: var(--red); }
+@media (max-width: 600px) {
+  .bar-in { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 2px 8px; padding-block: 10px; }
+  .bar h1 { grid-area: 1 / 1; font-size: 1.05rem; letter-spacing: .03em; }
+  .status { grid-area: 2 / 1; text-align: left; font-size: .72rem; }
+  .status.err { white-space: normal; }
+  #copy { grid-area: 1 / 2 / 3 / 3; }
+  .bar .btn { padding: 8px 14px; }
+}
+
+.btn { border: 1.5px solid var(--ink); background: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 700; white-space: nowrap; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn.sm { padding: 3px 10px; font-size: .8rem; border-color: var(--rule); font-weight: 500; }
+@media (hover: hover) { .btn.sm:hover { border-color: var(--ink); } }
+.link { border: 0; background: none; padding: 0; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: .8rem; }
+@media (hover: hover) { .link:hover { color: var(--ink); } }
+
+.main { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px;
+  padding-block: 8px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 980px) { .main { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+.col { min-width: 0; }
+.sec { padding-block: 20px; border-bottom: 1px solid var(--rule); min-width: 0; }
+.sec:last-child { border-bottom: 0; }
+.sec h2 { font-size: 1.05rem; font-weight: 900; margin: 0 0 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.sec h2 .t { display: flex; gap: 10px; align-items: baseline; }
+.sec h2 .no { color: var(--faint); font-weight: 700; font-variant-numeric: tabular-nums; }
+.lead { color: var(--sub); font-size: .82rem; margin: -6px 0 12px; }
+
+textarea { width: 100%; display: block; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); font-size: 16px; font-weight: 500; line-height: 1.75; resize: vertical; transition: border-color .15s, box-shadow .15s; }
+@media (hover: hover) { textarea:hover { border-color: var(--sub); } }
+textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--ring); }
+#src { min-height: 250px; }
+
+.checks { display: flex; flex-direction: column; gap: 8px; }
+.check { display: flex; gap: 10px; align-items: center; cursor: pointer; border: 1.5px solid var(--rule); border-radius: 8px; padding: 0 12px; min-height: 52px; font-weight: 700; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) { .check:hover { border-color: var(--sub); } }
+.check:has(input:checked) { border-color: var(--ink); }
+.check input { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; border: 2px solid var(--faint); border-radius: 5px; background: var(--bg); display: grid; place-items: center; cursor: pointer; }
+.check input:checked { background: var(--ink); border-color: var(--ink); }
+.check input:checked::after { content: ""; width: 5px; height: 9px; border: solid var(--bg); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+.check small { display: block; color: var(--sub); font-size: .76rem; font-weight: 500; line-height: 1.4; }
+
+details.more { margin-top: 18px; }
+details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; margin-bottom: 14px; }
+.setbox { border: 1.5px solid var(--rule); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: .8rem; font-weight: 900; }
+.note { font-size: .76rem; color: var(--sub); margin: 8px 0 0; }
+.warn { font-size: .82rem; color: var(--red); margin: 10px 0 0; }
+.warn:empty { display: none; }
+
+.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 66px); align-self: start; min-width: 0; padding-top: 20px; }
+@media (max-width: 980px) { .preview { position: static; } }
+.pv-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.pv-head h2 { font-size: 1.05rem; font-weight: 900; margin: 0; }
+.pv-head span { font-size: .78rem; color: var(--sub); }
+.sheet { background: var(--soft); padding: 12px; border-radius: 4px; }
+#out { min-height: 420px; background: var(--bg); border-color: var(--rule); }
+@media (min-width: 981px) { #out { min-height: calc(100vh - 190px); } }
+.pv-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <h1>授業報告メッセージ</h1>
+  <div class="status" id="status" role="status">報告を貼り付けてください</div>
+  <button class="btn primary" id="copy" type="button">コピー</button>
+</div></header>
+
+<main class="main">
+  <div class="col">
+    <section class="sec">
+      <h2><span class="t"><span class="no">1</span>報告</span><button class="btn sm" id="clear" type="button">クリア</button></h2>
+      <p class="lead">講師報告をそのまま貼り付けます。右に送信用の文章ができます。</p>
+      <textarea id="src" aria-label="授業報告" spellcheck="false"></textarea>
+      <p class="warn" id="warn"></p>
+    </section>
+    <section class="sec">
+      <h2><span class="t"><span class="no">2</span>設定</span></h2>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="last"><span>今月最後の授業<small>次回の日にちのあとに、振込のお願いを入れる</small></span></label>
+      </div>
+      <details class="more">
+        <summary>定型文を変える</summary>
+        <div class="setbox">
+          <div class="field"><label for="greet">書き出し</label><textarea id="greet" rows="1"></textarea></div>
+          <div class="field"><label for="monthEnd">今月最後のときに入れる文</label><textarea id="monthEnd" rows="4"></textarea></div>
+          <div class="field"><label for="closing">結び</label><textarea id="closing" rows="1"></textarea></div>
+          <div><button class="link" id="reset" type="button">はじめの文に戻す</button></div>
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <aside class="col preview">
+    <div class="pv-head"><h2>送信用メッセージ</h2><span>ここで直接書き直せます</span></div>
+    <div class="sheet"><textarea id="out" aria-label="送信用メッセージ"></textarea></div>
+    <div class="pv-foot"><span class="note" id="count"></span><button class="btn primary" id="copy2" type="button">コピー</button></div>
+  </aside>
+</main>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const DEF = { greet: "お疲れ様でした。", closing: "次回もよろしくお願いします😊",
+  monthEnd: "本日で今月最後の授業でしたので、ポータルサイトをご確認いただき、授業回数・金額をお確かめの上、指定日までにお振込いただきますようお願いいたします。" };
+const SAMPLE = "指導日時:\n2026-11-27 18:00\n指導時間:\n75 分\n指導内容:\n・小テスト（約分、通分、たし算・ひき算）\n・テキスト p6 問2 ⑤まで\n与えた宿題・指示:\nプリントを進めてください\n次回指導予定:\n2026-12-04 開始 18:00";
+const store = { get(k) { try { return localStorage.getItem(k) } catch (e) { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch (e) {} } };
+const LABEL = /^(指導日時|指導時間|指導内容|与えた宿題・指示|宿題・指示|宿題|次回指導予定|次回予定)\s*(?:[:：]\s*(.*))?$/;
+const KEY = { "指導日時": "date", "指導時間": "dur", "指導内容": "content", "与えた宿題・指示": "hw", "宿題・指示": "hw", "宿題": "hw", "次回指導予定": "next", "次回予定": "next" };
+const WD = "日月火水木金土";
+const pad = n => String(n).padStart(2, "0");
+
+function parse(text) {
+  const s = {}; let cur = null;
+  for (const raw of text.replace(/\r/g, "").split("\n")) {
+    const line = raw.trim();
+    const m = line.match(LABEL);
+    if (m) { cur = KEY[m[1]]; s[cur] = s[cur] || []; if (m[2]) s[cur].push(m[2].trim()); continue; }
+    if (cur && line) s[cur].push(line);
+  }
+  return s;
+}
+const fixText = t => t.replace(/(^|[^A-Za-z])p\.?\s?(\d)/g, "$1P$2");
+function nextSentence(s) {
+  const n = (s.next || []).join(" ");
+  const d = n.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+  if (!d) return null;
+  const y = +d[1], mo = +d[2], da = +d[3];
+  let when = `${mo}月${da}日(${WD[new Date(y, mo - 1, da).getDay()]})`;
+  const t = n.slice(d.index + d[0].length).match(/(\d{1,2})[:：](\d{2})/);
+  if (t) {
+    const st = +t[1] * 60 + +t[2];
+    const dm = (s.dur || []).join("").match(/(\d+)/);
+    when += ` ${+t[1]}:${t[2]}`;
+    if (dm) { const e = st + +dm[1]; when += `～${Math.floor(e / 60) % 24}:${pad(e % 60)}`; }
+  }
+  return `次回は、${when}となります。`;
+}
+function build() {
+  const src = $("src").value, has = src.trim() !== "";
+  const s = parse(src), warn = [];
+  let ns = nextSentence(s);
+  if (!ns) { ns = "次回の日程は改めてご連絡いたします。"; if (has) warn.push("次回指導予定の日付が読み取れませんでした。"); }
+  const content = (s.content || []).map(l => fixText("・" + l.replace(/^[・･\-－*•]\s*/, "")));
+  if (!content.length && has) warn.push("指導内容が見つかりませんでした。");
+  const hw = (s.hw || []).map(fixText);
+  let out = $("greet").value + ns;
+  if ($("last").checked) out += "\n\n" + $("monthEnd").value;
+  out += "\n\n♢ 今日の学習内容\n" + (content.join("\n") || "・") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
+  $("out").value = out;
+  $("warn").textContent = warn.join(" ");
+  const found = ["date", "dur", "content", "hw", "next"].filter(k => s[k] && s[k].length).length;
+  setStatus(has ? `${found}/5 項目を読み取りました` + ($("last").checked ? "・今月最後" : "") : "報告を貼り付けてください", false);
+  $("count").textContent = `${[...out].length}文字`;
+}
+function setStatus(msg, err) { const st = $("status"); st.textContent = msg; st.classList.toggle("err", !!err); }
+let tm;
+function flash(msg) { setStatus(msg); clearTimeout(tm); tm = setTimeout(build, 1800); }
+async function copy() {
+  const v = $("out").value;
+  try { await navigator.clipboard.writeText(v); flash("コピーしました"); }
+  catch (e) { $("out").select(); try { document.execCommand("copy") ? flash("コピーしました") : setStatus("長押しでコピーしてください", true); } catch (_) { setStatus("長押しでコピーしてください", true); } }
+}
+
+for (const k of ["greet", "closing", "monthEnd"]) {
+  $(k).value = store.get("tpl_" + k) ?? DEF[k];
+  $(k).addEventListener("input", () => { store.set("tpl_" + k, $(k).value); build(); });
+}
+$("src").value = store.get("draft") ?? SAMPLE;
+$("src").addEventListener("input", () => { store.set("draft", $("src").value); build(); });
+$("last").addEventListener("change", build);
+$("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").checked = false; build(); $("src").focus(); });
+$("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); flash("はじめの文に戻しました"); });
+$("copy").addEventListener("click", copy);
+$("copy2").addEventListener("click", copy);
+build();
+}
+</script>
+</body>
+</html>
