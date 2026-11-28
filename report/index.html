@@ -45,7 +45,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .link { border: 0; background: none; padding: 0; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: .8rem; }
 @media (hover: hover) { .link:hover { color: var(--ink); } }
 
-.main { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px;
+.main { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0;
   padding-block: 8px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 @media (max-width: 980px) { .main { grid-template-columns: minmax(0, 1fr); gap: 0; } }
 .col { min-width: 0; }
@@ -60,7 +60,7 @@ textarea { width: 100%; display: block; border: 1.5px solid var(--line); border-
 @media (hover: hover) { textarea:hover { border-color: var(--sub); } }
 textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--ring); }
 #src { resize: none; overflow: hidden; min-height: 0; }
-.under { display: flex; justify-content: flex-end; margin-top: 10px; }
+.under { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
 .under .btn { min-height: 46px; padding: 0 24px; font-size: 1rem; }
 .toggle { width: 100%; min-height: 52px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bg); font-weight: 700; font-size: 1rem; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s; }
 @media (hover: hover) { .toggle:hover { border-color: var(--ink); } }
@@ -91,8 +91,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .pv-head h2 { font-size: 1.05rem; font-weight: 900; margin: 0; }
 .pv-head span { font-size: .78rem; color: var(--sub); }
 .sheet { background: var(--soft); padding: 12px; border-radius: 4px; }
-#out { min-height: 420px; background: var(--bg); border-color: var(--rule); }
-@media (min-width: 981px) { #out { min-height: calc(100vh - 190px); } }
+#out { min-height: 0; resize: none; overflow: hidden; background: var(--bg); border-color: var(--rule); }
 .pv-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; }
 </style>
 </head>
@@ -102,34 +101,18 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 </div></header>
 
 <main class="main">
-  <div class="col">
-    <section class="sec">
-      <h2>報告</h2>
-      <p class="lead">講師報告をそのまま貼り付けると、送信用の文章ができます。</p>
-      <textarea id="src" aria-label="授業報告" spellcheck="false" rows="3"></textarea>
-      <div class="under"><button class="btn" id="clear" type="button">クリア</button></div>
-      <p class="warn" id="warn"></p>
-    </section>
-    <section class="sec">
-      <h2>設定</h2>
-      <button class="toggle" id="last" type="button" aria-pressed="false">今月最後の授業</button>
-      <details class="more">
-        <summary>定型文を変える</summary>
-        <div class="setbox">
-          <div class="field"><label for="greet">書き出し</label><textarea id="greet" rows="1"></textarea></div>
-          <div class="field"><label for="monthEnd">今月最後のときに入れる文</label><textarea id="monthEnd" rows="4"></textarea></div>
-          <div class="field"><label for="closing">結び</label><textarea id="closing" rows="1"></textarea></div>
-          <div><button class="link" id="reset" type="button">はじめの文に戻す</button></div>
-        </div>
-      </details>
-    </section>
-  </div>
-
-  <aside class="col preview">
-    <div class="pv-head"><h2>送信用メッセージ</h2><span>ここで直接書き直せます</span></div>
+  <section class="sec">
+    <h2>報告</h2>
+    <textarea id="src" aria-label="授業報告" spellcheck="false" rows="3"></textarea>
+    <div class="under"><button class="btn" id="clear" type="button">クリア</button></div>
+    <button class="toggle" id="last" type="button" aria-pressed="false">今月最後の授業</button>
+    <p class="warn" id="warn"></p>
+  </section>
+  <section class="sec">
+    <h2>送信用メッセージ</h2>
     <div class="sheet"><textarea id="out" aria-label="送信用メッセージ"></textarea></div>
     <div class="pv-foot"><span class="note" id="count"></span><button class="btn primary" id="copy2" type="button">コピー</button></div>
-  </aside>
+  </section>
 </main>
 
 <script>
@@ -155,7 +138,7 @@ function parse(text) {
   return s;
 }
 const isLast = () => $("last").getAttribute("aria-pressed") === "true";
-function fit() { const t = $("src"); t.style.height = "auto"; t.style.height = (t.scrollHeight + 3) + "px"; }
+function fit() { for (const id of ["src", "out"]) { const t = $(id); t.style.height = "auto"; t.style.height = (t.scrollHeight + 3) + "px"; } }
 function nextSentence(s) {
   const n = (s.next || []).join(" ");
   const d = n.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
@@ -179,10 +162,11 @@ function build() {
   const content = s.content || [];
   if (!content.length && has) warn.push("指導内容が見つかりませんでした。");
   const hw = s.hw || [];
-  let out = $("greet").value + ns;
-  if (isLast()) out += "\n\n" + $("monthEnd").value;
-  out += "\n\n♢ 今日の学習内容\n" + content.join("\n") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
+  let out = DEF.greet + ns;
+  if (isLast()) out += "\n\n" + DEF.monthEnd;
+  out += "\n\n♢ 今日の学習内容\n" + content.join("\n") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + DEF.closing;
   $("out").value = out;
+  fit();
   $("warn").textContent = warn.join(" ");
   $("count").textContent = `${[...out].length}文字`;
 }
@@ -194,18 +178,14 @@ async function copy() {
   catch (e) { $("out").select(); try { flash(document.execCommand("copy") ? "コピーしました" : "長押しでコピー"); } catch (_) { flash("長押しでコピー"); } }
 }
 
-for (const k of ["greet", "closing", "monthEnd"]) {
-  $(k).value = store.get("tpl_" + k) ?? DEF[k];
-  $(k).addEventListener("input", () => { store.set("tpl_" + k, $(k).value); build(); });
-}
 $("src").value = store.get("draft") ?? SAMPLE;
-$("src").addEventListener("input", () => { store.set("draft", $("src").value); fit(); build(); });
+$("src").addEventListener("input", () => { store.set("draft", $("src").value); build(); });
+$("out").addEventListener("input", fit);
 $("last").addEventListener("click", () => { $("last").setAttribute("aria-pressed", isLast() ? "false" : "true"); build(); });
 $("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").setAttribute("aria-pressed", "false"); fit(); build(); $("src").focus(); });
 const fitObs = new ResizeObserver(() => fit()); fitObs.observe($("src").parentElement);
 fit();
 if (document.fonts) document.fonts.ready.then(fit);
-$("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); });
 $("copy2").addEventListener("click", copy);
 build();
 }
