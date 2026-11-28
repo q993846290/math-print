@@ -195,12 +195,14 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .cal-scroll { position: relative; height: 292px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   scrollbar-width: none; touch-action: pan-y; }
 .cal-scroll::-webkit-scrollbar { display: none; }
-.cal-scroll .cal { padding-bottom: 8px; }
-.cal-scroll .cal button { aspect-ratio: auto; height: 42px; position: relative; }
-.cal .m1 { position: absolute; top: 1px; left: 3px; font-size: .58rem; font-weight: 900; color: var(--sub); line-height: 1; }
-.cal button.on .m1 { color: var(--bg); }
-.cal .mrow { grid-column: 1 / -1; text-align: left; font-weight: 900; font-size: .9rem; padding: 8px 2px 2px; border-top: 1.5px solid var(--rule); margin-top: 2px; }
-.cal .mrow.first { border-top: 0; margin-top: 0; padding-top: 2px; }
+.cal-scroll .cal { gap: 0; padding-bottom: 8px; }
+.cal-scroll .dcell { padding: 2px; }
+.cal-scroll .cal button { aspect-ratio: auto; width: 100%; height: 40px; }
+/* 月の境目の線（階段の形）。t：上の横線、l：たての線、b：下の横線 */
+.cal .mcell { height: 26px; padding: 5px 0 0 6px; text-align: left; font-weight: 900; font-size: .9rem; line-height: 1.2; white-space: nowrap; overflow: visible; }
+.cal .mcell.t { border-top: 1.5px solid var(--faint); }
+.cal .mcell.l, .cal .dcell.l { border-left: 1.5px solid var(--faint); }
+.cal .dcell.b { border-bottom: 1.5px solid var(--faint); }
 .cal-wrap { position: relative; }
 .cal-wrap::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 12px; height: 22px; pointer-events: none;
   background: linear-gradient(transparent, var(--bg)); border-radius: 0 0 8px 8px; }
@@ -363,48 +365,53 @@ function buildCal() {
   if (calFrom && calFrom < first) first = new Date(calFrom.getFullYear(), calFrom.getMonth(), 1);  // 番号で呼び出した前のプリントの日付
   if (calFrom && calFrom > end) end = new Date(calFrom.getFullYear(), calFrom.getMonth() + 1, 0);
   let d = new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay());
-  let todayRow = null, isFirst = true;
+  const weekTop = new Map();  // その週の日付 → 週のいちばん上の要素（月の見出しがあれば見出し）
   while (d <= end) {
-    // その週に 1日があれば、週の前に月の見出しを入れる
-    for (let i = 0; i < 7; i++) {
-      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i);
-      if (x.getDate() === 1 || (isFirst && i === 6)) {
-        const lab = el("div", { className: "mrow" + (isFirst ? " first" : ""), textContent: `${x.getMonth() === 0 ? x.getFullYear() + "年" : ""}${x.getMonth() + 1}月` });
-        lab.dataset.ym = `${x.getFullYear()}-${x.getMonth()}`;
-        grid.append(lab);
-        isFirst = false;
-        break;
+    // その週に 1日があれば、月の境目を階段の形の線で区切る：
+    // 1日から右は週の上（見出しの上）に横の線、1日の左にたての線、1日より前の日の下に横の線。見出しは 1日の上に書く。
+    let one = -1;
+    for (let i = 0; i < 7; i++) if (new Date(d.getFullYear(), d.getMonth(), d.getDate() + i).getDate() === 1) one = i;
+    let top = null;
+    if (one >= 0) {
+      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + one);
+      for (let i = 0; i < 7; i++) {
+        const c = el("div", { className: "mcell" + (i >= one ? " t" : "") + (i === one && one > 0 ? " l" : "") });
+        if (i === one) { c.textContent = `${x.getMonth() === 0 ? x.getFullYear() + "年" : ""}${x.getMonth() + 1}月`; c.classList.add("lab"); }
+        if (i === 0) top = c;
+        grid.append(c);
       }
     }
     for (let i = 0; i < 7; i++, d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
       const date = d, k = iso(date);
+      const cell = el("div", { className: "dcell" + (one > 0 && i < one ? " b" : "") + (one > 0 && i === one ? " l" : "") });
       const b = el("button", { type: "button", textContent: date.getDate() });
-      if (date.getDate() === 1) b.prepend(el("span", { className: "m1", textContent: `${date.getMonth() + 1}月` }));
       b.dataset.k = k;
       b.dataset.ym = `${date.getFullYear()}-${date.getMonth()}`;
       b.setAttribute("aria-label", `${date.getMonth() + 1}月${date.getDate()}日`);
       b.addEventListener("click", () => { if (dates.has(k)) dates.delete(k); else if (dates.size < 31) dates.add(k); renderDates(); schedule(); });
-      if (k === iso(today)) todayRow = b;
+      if (i === 0 && !top) top = cell;
+      weekTop.set(k, top);
       calCells.set(k, { b, date });
-      grid.append(b);
+      cell.append(b);
+      grid.append(cell);
     }
   }
   calBuilt = true;
   // 今日の週がいちばん上に来るようにする（番号で呼び出したときは、そのプリントの最初の日）
   const sc = $("calscroll");
-  const goal = (calScrollTo && calCells.get(calScrollTo)?.b) || todayRow;
+  const goal = weekTop.get(calScrollTo) || weekTop.get(iso(today));
   calScrollTo = null;
-  requestAnimationFrame(() => { if (goal) sc.scrollTop = Math.max(0, goal.offsetTop - 2); showMonth(); });
+  requestAnimationFrame(() => { if (goal) sc.scrollTop = Math.max(0, goal.offsetTop); showMonth(); });
   if (!sc.dataset.on) { sc.addEventListener("scroll", showMonth, { passive: true }); sc.dataset.on = "1"; }
 }
-// 見出しには、カレンダーのまん中あたりに見えている月を出す
+// 見出しには、いちばん上に見えている週の土曜日の月を出す
 function showMonth() {
   const sc = $("calscroll");
-  const mid = sc.scrollTop + sc.clientHeight * 0.4;
-  let ym = null;
-  for (const b of $("cal").children) { if (b.tagName === "BUTTON" && b.offsetTop + b.offsetHeight > mid) { ym = b.dataset.ym; break; } }
-  if (!ym) return;
-  const [y, m] = ym.split("-").map(Number);
+  const bs = [...$("cal").querySelectorAll("button")];
+  const i = bs.findIndex((b) => b.offsetTop + b.offsetHeight > sc.scrollTop + 6);
+  if (i < 0) return;
+  const sat = bs[Math.min(bs.length - 1, Math.floor(i / 7) * 7 + 6)];
+  const [y, m] = sat.dataset.ym.split("-").map(Number);
   $("month").textContent = `${y}年${m + 1}月`;
 }
 function renderCal() {
@@ -623,7 +630,7 @@ const FONTS = ["KleeOne-SemiBold.ttf", "KaTeX_Main-Regular.ttf", "KaTeX_Math-Ita
 const setStatus = (text, err = false) => { const s = $("status"); s.textContent = text; s.classList.toggle("err", err); };
 
 const BUNDLE = "bundle-a552b30a4a.b64.txt";
-const PAGE_V = "cc89be7a72";  // ページの版（中身が変わるたびに変わる）
+const PAGE_V = "b35f2a2f13";  // ページの版（中身が変わるたびに変わる）
 // ブラウザに古いページが残っていたら、最新のページに切りかえる（GitHub Pages は数分ページを覚えておくため）
 async function newerPage() {
   try {
