@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>授業報告メッセージ</title>
+<title>授業報告</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,7 +57,13 @@ button, input, textarea { font: inherit; color: inherit; }
 textarea { width: 100%; display: block; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); font-size: 16px; font-weight: 500; line-height: 1.75; resize: vertical; transition: border-color .15s, box-shadow .15s; }
 @media (hover: hover) { textarea:hover { border-color: var(--sub); } }
 textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--ring); }
-#src { min-height: 250px; }
+#src { resize: none; overflow: hidden; min-height: 0; }
+.under { display: flex; justify-content: flex-end; margin-top: 10px; }
+.under .btn { min-height: 46px; padding: 0 24px; font-size: 1rem; }
+.toggle { width: 100%; min-height: 52px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bg); font-weight: 700; font-size: 1rem; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s, border-color .15s; }
+@media (hover: hover) { .toggle:hover { border-color: var(--ink); } }
+.toggle[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .toggle { transition: none; } }
 
 .checks { display: flex; flex-direction: column; gap: 8px; }
 .check { display: flex; gap: 10px; align-items: center; cursor: pointer; border: 1.5px solid var(--rule); border-radius: 8px; padding: 0 12px; min-height: 52px; font-weight: 700; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -90,22 +96,21 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 </head>
 <body>
 <header class="bar"><div class="bar-in">
-  <h1>授業報告メッセージ</h1>
+  <h1>授業報告</h1>
 </div></header>
 
 <main class="main">
   <div class="col">
     <section class="sec">
-      <h2><span class="t"><span class="no">1</span>報告</span><button class="btn sm" id="clear" type="button">クリア</button></h2>
+      <h2>報告</h2>
       <p class="lead">講師報告をそのまま貼り付けます。右に送信用の文章ができます。</p>
-      <textarea id="src" aria-label="授業報告" spellcheck="false"></textarea>
+      <textarea id="src" aria-label="授業報告" spellcheck="false" rows="3"></textarea>
+      <div class="under"><button class="btn" id="clear" type="button">クリア</button></div>
       <p class="warn" id="warn"></p>
     </section>
     <section class="sec">
-      <h2><span class="t"><span class="no">2</span>設定</span></h2>
-      <div class="checks">
-        <label class="check"><input type="checkbox" id="last"><span>今月最後の授業<small>次回の日にちのあとに、振込のお願いを入れる</small></span></label>
-      </div>
+      <h2>設定</h2>
+      <button class="toggle" id="last" type="button" aria-pressed="false">今月最後の授業</button>
       <details class="more">
         <summary>定型文を変える</summary>
         <div class="setbox">
@@ -147,6 +152,8 @@ function parse(text) {
   }
   return s;
 }
+const isLast = () => $("last").getAttribute("aria-pressed") === "true";
+function fit() { const t = $("src"); t.style.height = "auto"; t.style.height = (t.scrollHeight + 3) + "px"; }
 const fixText = t => t.replace(/(^|[^A-Za-z])p\.?\s?(\d)/g, "$1P$2");
 function nextSentence(s) {
   const n = (s.next || []).join(" ");
@@ -172,7 +179,7 @@ function build() {
   if (!content.length && has) warn.push("指導内容が見つかりませんでした。");
   const hw = (s.hw || []).map(fixText);
   let out = $("greet").value + ns;
-  if ($("last").checked) out += "\n\n" + $("monthEnd").value;
+  if (isLast()) out += "\n\n" + $("monthEnd").value;
   out += "\n\n♢ 今日の学習内容\n" + (content.join("\n") || "・") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
   $("out").value = out;
   $("warn").textContent = warn.join(" ");
@@ -191,9 +198,11 @@ for (const k of ["greet", "closing", "monthEnd"]) {
   $(k).addEventListener("input", () => { store.set("tpl_" + k, $(k).value); build(); });
 }
 $("src").value = store.get("draft") ?? SAMPLE;
-$("src").addEventListener("input", () => { store.set("draft", $("src").value); build(); });
-$("last").addEventListener("change", build);
-$("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").checked = false; build(); $("src").focus(); });
+$("src").addEventListener("input", () => { store.set("draft", $("src").value); fit(); build(); });
+$("last").addEventListener("click", () => { $("last").setAttribute("aria-pressed", isLast() ? "false" : "true"); build(); });
+$("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").setAttribute("aria-pressed", "false"); fit(); build(); $("src").focus(); });
+const fitObs = new ResizeObserver(() => fit()); fitObs.observe($("src").parentElement);
+fit();
 $("reset").addEventListener("click", () => { for (const k in DEF) { $(k).value = DEF[k]; store.set("tpl_" + k, DEF[k]); } build(); });
 $("copy2").addEventListener("click", copy);
 build();
