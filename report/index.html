@@ -91,7 +91,9 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
 .pv-head h2 { font-size: 1.05rem; font-weight: 900; margin: 0; }
 .pv-head span { font-size: .78rem; color: var(--sub); }
 .sheet { background: none; padding: 0; }
-#out { min-height: 0; resize: none; overflow: hidden; }
+#out { min-height: 0; resize: none; overflow: hidden; cursor: default; caret-color: transparent; -webkit-tap-highlight-color: transparent; }
+/* さわっても枠の色や影を変えない（読むだけの枠） */
+#out:hover, #out:focus, #out:focus-visible { border-color: var(--line); box-shadow: none; outline: none; }
 .pv-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 10px; }
 </style>
 </head>
@@ -110,7 +112,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
   </section>
   <section class="sec">
     <h2>送信用メッセージ</h2>
-    <div class="sheet"><textarea id="out" aria-label="送信用メッセージ" readonly></textarea></div>
+    <div class="sheet"><textarea id="out" aria-label="送信用メッセージ" readonly tabindex="-1"></textarea></div>
     <div class="pv-foot"><button class="btn primary" id="copy2" type="button">コピー</button></div>
   </section>
 </main>
