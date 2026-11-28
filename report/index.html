@@ -110,7 +110,7 @@ details.more > summary { cursor: pointer; color: var(--sub); font-size: .85rem; 
   </section>
   <section class="sec">
     <h2>送信用メッセージ</h2>
-    <div class="sheet"><textarea id="out" aria-label="送信用メッセージ"></textarea></div>
+    <div class="sheet"><textarea id="out" aria-label="送信用メッセージ" readonly></textarea></div>
     <div class="pv-foot"><button class="btn primary" id="copy2" type="button">コピー</button></div>
   </section>
 </main>
@@ -179,7 +179,6 @@ async function copy() {
 
 $("src").value = store.get("draft") ?? SAMPLE;
 $("src").addEventListener("input", () => { store.set("draft", $("src").value); build(); });
-$("out").addEventListener("input", fit);
 $("last").addEventListener("click", () => { $("last").setAttribute("aria-pressed", isLast() ? "false" : "true"); build(); });
 $("clear").addEventListener("click", () => { $("src").value = ""; store.set("draft", ""); $("last").setAttribute("aria-pressed", "false"); fit(); build(); $("src").focus(); });
 const fitObs = new ResizeObserver(() => fit()); fitObs.observe($("src").parentElement);
