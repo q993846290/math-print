@@ -156,7 +156,6 @@ function parse(text) {
 }
 const isLast = () => $("last").getAttribute("aria-pressed") === "true";
 function fit() { const t = $("src"); t.style.height = "auto"; t.style.height = (t.scrollHeight + 3) + "px"; }
-const fixText = t => t.replace(/(^|[^A-Za-z])p\.?\s?(\d)/g, "$1P$2");
 function nextSentence(s) {
   const n = (s.next || []).join(" ");
   const d = n.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
@@ -177,9 +176,9 @@ function build() {
   const s = parse(src), warn = [];
   let ns = nextSentence(s);
   if (!ns) { ns = "次回の日程は改めてご連絡いたします。"; if (has) warn.push("次回指導予定の日付が読み取れませんでした。"); }
-  const content = (s.content || []).map(fixText);
+  const content = s.content || [];
   if (!content.length && has) warn.push("指導内容が見つかりませんでした。");
-  const hw = (s.hw || []).map(fixText);
+  const hw = s.hw || [];
   let out = $("greet").value + ns;
   if (isLast()) out += "\n\n" + $("monthEnd").value;
   out += "\n\n♢ 今日の学習内容\n" + content.join("\n") + "\n\n♢ 宿題\n" + (hw.join("\n") || "なし") + "\n\n" + $("closing").value;
